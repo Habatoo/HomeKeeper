@@ -1,9 +1,16 @@
 package com.homekeeper.controllers;
 
+import com.homekeeper.models.User;
+import com.homekeeper.repo.UserRepo;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.List;
+
 @RestController
+@RequestMapping("payments")
 public class MainController {
 
     @GetMapping("/auth")
@@ -11,15 +18,6 @@ public class MainController {
         //        /auth
         //        Метод авторизации пользователя
         return "/auth";
-    }
-
-    @GetMapping("/getUserInfo")
-    public String getUserInfo() {
-        //        Получение данных авторизованного пользователя из таблицы users, а именно:
-        //        ·         Users.fullname
-        //        ·         Users.balance
-        //        ·         Users.superuser
-        return "/getUserInfo";
     }
 
     @GetMapping("/getCalculation")
@@ -41,27 +39,6 @@ public class MainController {
         //        /changeTariffs
         //        Обновление тарифов
         return "/changeTariffs";
-    }
-
-    @GetMapping("/addUser")
-    public String addUser() {
-        //        /addUser
-        //        Добавление нового пользователя
-        return "/addUser";
-    }
-
-    @GetMapping("/deleteUser")
-    public String deleteUser() {
-        //        /deleteUser
-        //        Удаление пользователя
-        return "/deleteUser";
-    }
-
-    @GetMapping("/changeUser")
-    public String changeUser() {
-        //        /changeUser
-        //        Изменение пользователя (пароль, баланс)
-        return "/changeUser";
     }
 
     @GetMapping("/makeReport")
