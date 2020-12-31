@@ -1,7 +1,7 @@
 package com.homekeeper.controllers;
 
 import com.homekeeper.models.User;
-import com.homekeeper.repo.UserRepo;
+import com.homekeeper.repository.UserRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -12,16 +12,16 @@ import java.util.List;
 @RestController
 @RequestMapping("users")
 public class UsersController {
-    private final UserRepo userRepo;
+    private final UserRepository userRepository;
 
     @Autowired
-    public UsersController(UserRepo userRepo) {
-        this.userRepo = userRepo;
+    public UsersController(UserRepository userRepository) {
+        this.userRepository = userRepository;
     }
 
     @GetMapping
     public List<User> userList() {
-        return userRepo.findAll();
+        return userRepository.findAll();
     }
 
     @GetMapping("{id}")
@@ -39,7 +39,7 @@ public class UsersController {
         //        /addUser
         //        Добавление нового пользователя
         user.setCreationDate(LocalDateTime.now());
-        return userRepo.save(user);
+        return userRepository.save(user);
     }
 
     @PutMapping("{id}")
@@ -51,14 +51,14 @@ public class UsersController {
         //        Изменение пользователя (пароль, баланс)
         BeanUtils.copyProperties(user, userFromDb, "id");
 
-        return userRepo.save(userFromDb);
+        return userRepository.save(userFromDb);
     }
 
     @DeleteMapping("{id}")
     public void deleteUser(@PathVariable("id") User user) {
         //        /deleteUser
         //        Удаление пользователя
-        userRepo.delete(user);
+        userRepository.delete(user);
     }
 
 }
