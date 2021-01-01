@@ -15,7 +15,7 @@ import java.util.Set;
 @EqualsAndHashCode(of = {"id"})
 public class User {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String firstName;
@@ -34,6 +34,18 @@ public class User {
             joinColumns = @JoinColumn(name = "user_id"),
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(	name = "user_balances",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "balance_id"))
+    private Set<UserBalance> balances = new HashSet<>();
+
+//    @ManyToMany(fetch = FetchType.LAZY)
+//    @JoinTable(	name = "user_payments",
+//            joinColumns = @JoinColumn(name = "user_id"),
+//            inverseJoinColumns = @JoinColumn(name = "payment_id"))
+//    private Set<Payment> payments = new HashSet<>();
 
     public User() {
     }
@@ -69,6 +81,14 @@ public class User {
         this.lastName = lastName;
     }
 
+    public String getPassword() {
+        return password;
+    }
+
+    public void setPassword(String password) {
+        this.password = password;
+    }
+
     public String getUserEmail() {
         return userEmail;
     }
@@ -85,14 +105,6 @@ public class User {
         this.creationDate = creationDate;
     }
 
-    public String getPassword() {
-        return password;
-    }
-
-    public void setPassword(String password) {
-        this.password = password;
-    }
-
     public Set<Role> getRoles() {
         return roles;
     }
@@ -100,4 +112,20 @@ public class User {
     public void setRoles(Set<Role> roles) {
         this.roles = roles;
     }
+
+    public Set<UserBalance> getBalances() {
+        return balances;
+    }
+
+    public void setBalances(Set<UserBalance> balances) {
+        this.balances = balances;
+    }
+
+//    public Set<Payment> getPayments() {
+//        return payments;
+//    }
+//
+//    public void setPayments(Set<Payment> payments) {
+//        this.payments = payments;
+//    }
 }

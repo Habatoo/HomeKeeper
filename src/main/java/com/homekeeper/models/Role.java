@@ -1,12 +1,17 @@
 package com.homekeeper.models;
 
+import lombok.EqualsAndHashCode;
+import lombok.ToString;
+
 import javax.persistence.*;
 
 @Entity
 @Table(name = "roles")
+@ToString(of = {"id", "roleName"})
+@EqualsAndHashCode(of = {"id"})
 public class Role {
     @Id
-    @GeneratedValue(strategy = GenerationType.AUTO)
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Integer id;
 
     @Enumerated(EnumType.STRING)

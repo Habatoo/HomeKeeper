@@ -1,14 +1,21 @@
-drop table if exists hibernate_sequence;
+alter table user_balances drop foreign key FK6gvre07to2rrhtv3ip0lhm709;
+alter table user_balances drop foreign key FKfw60yn584dehknpjjufbl72uo;
+alter table user_roles drop foreign key FKh8ciramu9cc9q3qcqiv4ue8a6;
+alter table user_roles drop foreign key FKhfh9dx7w3ubf1co1vdev94g3f;
 drop table if exists roles;
+drop table if exists user_balances;
 drop table if exists user_roles;
+drop table if exists userbalances;
 drop table if exists users;
-
-create table hibernate_sequence (next_val bigint) engine=InnoDB;
-insert into hibernate_sequence values ( 1 );
-
-create table roles (id integer not null, role_name varchar(20), primary key (id)) engine=InnoDB;
-
-create table user_roles (user_id bigint(50) not null, role_id integer not null, primary key (user_id, role_id)) engine=InnoDB;
-create table users (id bigint(50) not null, creation_date datetime, first_name varchar(255), last_name varchar(255), password varchar(255), user_email varchar(255), primary key (id)) engine=InnoDB;
+create table roles (id integer not null auto_increment, role_name varchar(20), primary key (id)) engine=InnoDB;
+create table user_balances (user_id bigint not null, balance_id bigint not null, primary key (user_id, balance_id)) engine=InnoDB;
+create table user_roles (user_id bigint not null, role_id integer not null, primary key (user_id, role_id)) engine=InnoDB;
+create table userbalances (id bigint not null auto_increment, balance_date datetime, balance_sum_of_balance varchar(255), primary key (id)) engine=InnoDB;
+create table users (id bigint not null auto_increment, creation_date datetime, first_name varchar(255), last_name varchar(255), password varchar(255), user_email varchar(255), primary key (id)) engine=InnoDB;
+alter table user_balances add constraint FK6gvre07to2rrhtv3ip0lhm709 foreign key (balance_id) references userbalances (id);
+alter table user_balances add constraint FKfw60yn584dehknpjjufbl72uo foreign key (user_id) references users (id);
 alter table user_roles add constraint FKh8ciramu9cc9q3qcqiv4ue8a6 foreign key (role_id) references roles (id);
 alter table user_roles add constraint FKhfh9dx7w3ubf1co1vdev94g3f foreign key (user_id) references users (id);
+
+--INSERT INTO roles(role_name) VALUES('ROLE_USER');
+--INSERT INTO roles(role_name) VALUES('ROLE_ADMIN');
