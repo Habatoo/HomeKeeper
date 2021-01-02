@@ -41,11 +41,11 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "balance_id"))
     private Set<UserBalance> balances = new HashSet<>();
 
-//    @ManyToMany(fetch = FetchType.LAZY)
-//    @JoinTable(	name = "user_payments",
-//            joinColumns = @JoinColumn(name = "user_id"),
-//            inverseJoinColumns = @JoinColumn(name = "payment_id"))
-//    private Set<Payment> payments = new HashSet<>();
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(	name = "user_pays",
+            joinColumns = @JoinColumn(name = "user_id"),
+            inverseJoinColumns = @JoinColumn(name = "pay_id"))
+    private Set<Payment> payments = new HashSet<>();
 
     public User() {
     }
@@ -121,11 +121,11 @@ public class User {
         this.balances = balances;
     }
 
-//    public Set<Payment> getPayments() {
-//        return payments;
-//    }
-//
-//    public void setPayments(Set<Payment> payments) {
-//        this.payments = payments;
-//    }
+    public Set<Payment> getPayments() {
+        return payments;
+    }
+
+    public void setPayments(Set<Payment> payments) {
+        this.payments = payments;
+    }
 }

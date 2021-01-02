@@ -1,36 +1,48 @@
 package com.homekeeper.models;
 
+import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.springframework.data.annotation.Id;
 
-import java.time.LocalDateTime;
 import javax.persistence.*;
+import java.time.LocalDateTime;
 
-//@Entity
-//@Table(name = "tariffs")
-//@ToString(of = {
-//        "id",
-//        "tariffName",
-//        "tariffValue",
-//        "tariffStartDate",
-//        "tariffEndDate"
-//})
-//@EqualsAndHashCode(of = {"id"})
+@Entity
+@Table(name = "tariffs")
+@ToString(of = {"id",
+        "waterColdRate",
+        "waterHotRate",
+        "electricityRate",
+        "internetRate",
+        "rentRate",
+        "dateRateChange"
+})
+@EqualsAndHashCode(of = {"id"})
 public class Tariff {
-//    @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private ETariffValues tariffName;
+    private double waterColdRate;
+    private double waterHotRate;
+    private double electricityRate;
+    private double internetRate;
+    private double rentRate;
 
-    private double tariffValue;
+    @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
+    private LocalDateTime dateRateChange;
 
-    @Column(updatable = false)
-    private LocalDateTime tariffStartDate;
+    public Tariff() {
 
-    @Column(updatable = false)
-    private LocalDateTime tariffEndDate;
+    }
+
+    public Tariff(double waterColdRate, double waterHotRate, double electricityRate, double internetRate, double rentRate) {
+        this.waterColdRate = waterColdRate;
+        this.waterHotRate = waterHotRate;
+        this.electricityRate = electricityRate;
+        this.internetRate = internetRate;
+        this.rentRate = rentRate;
+    }
 
     public Long getId() {
         return id;
@@ -40,35 +52,51 @@ public class Tariff {
         this.id = id;
     }
 
-    public ETariffValues getTariffName() {
-        return tariffName;
+    public double getWaterColdRate() {
+        return waterColdRate;
     }
 
-    public void setTariffName(ETariffValues tariffName) {
-        this.tariffName = tariffName;
+    public void setWaterColdRate(double waterColdRate) {
+        this.waterColdRate = waterColdRate;
     }
 
-    public double getTariffValue() {
-        return tariffValue;
+    public double getWaterHotRate() {
+        return waterHotRate;
     }
 
-    public void setTariffValue(double tariffValue) {
-        this.tariffValue = tariffValue;
+    public void setWaterHotRate(double waterHotRate) {
+        this.waterHotRate = waterHotRate;
     }
 
-    public LocalDateTime getTariffStartDate() {
-        return tariffStartDate;
+    public double getElectricityRate() {
+        return electricityRate;
     }
 
-    public void setTariffStartDate(LocalDateTime tariffStartDate) {
-        this.tariffStartDate = tariffStartDate;
+    public void setElectricityRate(double electricityRate) {
+        this.electricityRate = electricityRate;
     }
 
-    public LocalDateTime getTariffEndDate() {
-        return tariffEndDate;
+    public double getInternetRate() {
+        return internetRate;
     }
 
-    public void setTariffEndDate(LocalDateTime tariffEndDate) {
-        this.tariffEndDate = tariffEndDate;
+    public void setInternetRate(double internetRate) {
+        this.internetRate = internetRate;
+    }
+
+    public double getRentRate() {
+        return rentRate;
+    }
+
+    public void setRentRate(double rentRate) {
+        this.rentRate = rentRate;
+    }
+
+    public LocalDateTime getDateRateChange() {
+        return dateRateChange;
+    }
+
+    public void setDateRateChange(LocalDateTime dateRateChange) {
+        this.dateRateChange = dateRateChange;
     }
 }

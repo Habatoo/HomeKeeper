@@ -3,33 +3,34 @@ package com.homekeeper.models;
 import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
-import org.springframework.data.annotation.Id;
 
-import javax.persistence.Entity;
-import javax.persistence.GeneratedValue;
-import javax.persistence.GenerationType;
-import javax.persistence.Table;
+import javax.persistence.*;
 import java.time.LocalDateTime;
+import java.util.HashSet;
+import java.util.Set;
 
-//@Entity
-//@Table(name = "payments")
-//@ToString(of = {"id",
-//        "waterColdValueCurrentMonth",
-//        "waterColdSum",
-//        "waterWarmValueCurrentMonth",
-//        "waterWarmSum",
-//        "electricityValueCurrentMonth",
-//        "electricitySum",
-//        "waterOutValueCurrentMonth",
-//        "waterOutSum",
-//        "rentSum",
-//        "homemates",
-//        "paymentDate"
-//})
-//@EqualsAndHashCode(of = {"id"})
+@Entity
+@Table(name = "payments")
+@ToString(of = {"id",
+        "waterColdValueCurrentMonth",
+        "waterColdSum",
+        "waterWarmValueCurrentMonth",
+        "waterWarmSum",
+        "electricityValueCurrentMonth",
+        "electricitySum",
+        "internetValueCurrentMonth",
+        "internetSum",
+        "waterOutValueCurrentMonth",
+        "waterOutSum",
+        "rentValueMonth",
+        "rentSum",
+        "homemates",
+        "paymentDate"
+})
+@EqualsAndHashCode(of = {"id"})
 public class Payment {
-//    @Id
-//    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private double waterColdValueCurrentMonth;
@@ -41,15 +42,45 @@ public class Payment {
     private double electricityValueCurrentMonth;
     private double electricitySum;
 
+    private double internetValueCurrentMonth;
+    private double internetSum;
+
     private double waterOutValueCurrentMonth;
     private double waterOutSum;
 
+    private double rentValueMonth;
     private double rentSum;
 
     private int homemates;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime paymentDate;
+
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(	name = "payment_tariffs",
+            joinColumns = @JoinColumn(name = "payment_id"),
+            inverseJoinColumns = @JoinColumn(name = "tariff_id"))
+    private Set<Tariff> tariffs = new HashSet<>();
+
+    public Payment() {
+
+    }
+
+    public Payment(double waterColdValueCurrentMonth, double waterColdSum, double waterWarmValueCurrentMonth, double waterWarmSum, double electricityValueCurrentMonth, double electricitySum, double internetValueCurrentMonth, double internetSum, double waterOutValueCurrentMonth, double waterOutSum, double rentValueMonth, double rentSum, int homemates) {
+        this.waterColdValueCurrentMonth = waterColdValueCurrentMonth;
+        this.waterColdSum = waterColdSum;
+        this.waterWarmValueCurrentMonth = waterWarmValueCurrentMonth;
+        this.waterWarmSum = waterWarmSum;
+        this.electricityValueCurrentMonth = electricityValueCurrentMonth;
+        this.electricitySum = electricitySum;
+        this.internetValueCurrentMonth = internetValueCurrentMonth;
+        this.internetSum = internetSum;
+        this.waterOutValueCurrentMonth = waterOutValueCurrentMonth;
+        this.waterOutSum = waterOutSum;
+        this.rentValueMonth = rentValueMonth;
+        this.rentSum = rentSum;
+        this.homemates = homemates;
+    }
 
     public Long getId() {
         return id;
@@ -58,7 +89,6 @@ public class Payment {
     public void setId(Long id) {
         this.id = id;
     }
-
 
     public double getWaterColdValueCurrentMonth() {
         return waterColdValueCurrentMonth;
@@ -108,6 +138,22 @@ public class Payment {
         this.electricitySum = electricitySum;
     }
 
+    public double getInternetValueCurrentMonth() {
+        return internetValueCurrentMonth;
+    }
+
+    public void setInternetValueCurrentMonth(double internetValueCurrentMonth) {
+        this.internetValueCurrentMonth = internetValueCurrentMonth;
+    }
+
+    public double getInternetSum() {
+        return internetSum;
+    }
+
+    public void setInternetSum(double internetSum) {
+        this.internetSum = internetSum;
+    }
+
     public double getWaterOutValueCurrentMonth() {
         return waterOutValueCurrentMonth;
     }
@@ -122,6 +168,14 @@ public class Payment {
 
     public void setWaterOutSum(double waterOutSum) {
         this.waterOutSum = waterOutSum;
+    }
+
+    public double getRentValueMonth() {
+        return rentValueMonth;
+    }
+
+    public void setRentValueMonth(double rentValueMonth) {
+        this.rentValueMonth = rentValueMonth;
     }
 
     public double getRentSum() {
@@ -146,5 +200,13 @@ public class Payment {
 
     public void setPaymentDate(LocalDateTime paymentDate) {
         this.paymentDate = paymentDate;
+    }
+
+    public Set<Tariff> getTariffs() {
+        return tariffs;
+    }
+
+    public void setTariffs(Set<Tariff> tariffs) {
+        this.tariffs = tariffs;
     }
 }
