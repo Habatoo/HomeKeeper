@@ -9,8 +9,9 @@ import org.springframework.web.bind.annotation.*;
 import java.time.LocalDateTime;
 import java.util.List;
 
+@CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
-@RequestMapping("users")
+@RequestMapping("/api/auth/users")
 public class UsersController {
     private final UserRepository userRepository;
 

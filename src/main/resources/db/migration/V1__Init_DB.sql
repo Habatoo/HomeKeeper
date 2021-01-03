@@ -23,7 +23,7 @@ create table user_balances (user_id bigint not null, balance_id bigint not null,
 create table user_pays (user_id bigint not null, pay_id bigint not null, primary key (user_id, pay_id)) engine=InnoDB;
 create table user_roles (user_id bigint not null, role_id integer not null, primary key (user_id, role_id)) engine=InnoDB;
 create table userbalances (id bigint not null auto_increment, balance_date datetime, balance_sum_of_balance varchar(255), primary key (id)) engine=InnoDB;
-create table users (id bigint not null auto_increment, creation_date datetime, first_name varchar(255), last_name varchar(255), password varchar(255), user_email varchar(255), primary key (id)) engine=InnoDB;
+create table users (id bigint not null auto_increment, creation_date datetime, password varchar(255), user_email varchar(255), user_name varchar(255), primary key (id)) engine=InnoDB;
 alter table payment_tariffs add constraint FKdoiustk4mjtjehgf5gaa1pgpc foreign key (tariff_id) references tariffs (id);
 alter table payment_tariffs add constraint FKbswedklecws8yc50oyjun7x8g foreign key (payment_id) references payments (id);
 alter table user_balances add constraint FK6gvre07to2rrhtv3ip0lhm709 foreign key (balance_id) references userbalances (id);
@@ -32,4 +32,3 @@ alter table user_pays add constraint FKg0d4elxu7srdqdmb6m16fkamg foreign key (pa
 alter table user_pays add constraint FKqn2v9xwky8n3dytmxufy1ggxq foreign key (user_id) references users (id);
 alter table user_roles add constraint FKh8ciramu9cc9q3qcqiv4ue8a6 foreign key (role_id) references roles (id);
 alter table user_roles add constraint FKhfh9dx7w3ubf1co1vdev94g3f foreign key (user_id) references users (id);
-
