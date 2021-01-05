@@ -4,6 +4,7 @@ import com.homekeeper.models.User;
 import com.homekeeper.repository.UserRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
@@ -25,15 +26,22 @@ public class UsersController {
         return userRepository.findAll();
     }
 
-    @GetMapping("{id}")
-    public User getUserInfo(@PathVariable("id") User user) {
-        // /getUserInfo
-        //        Получение данных авторизованного пользователя из таблицы users, а именно:
-        //        ·         Users.fullname
-        //        ·         Users.balance
-        //        ·         Users.superuser
-        return user;
+    @GetMapping("/getUserInfo")
+    @ResponseBody
+    public Object getUserInfo(Authentication authentication) {
+        // return authentication.getName();
+        return authentication.getPrincipal();
     }
+
+//    @GetMapping("{id}")
+//    public User getUserInfo(@PathVariable("id") User user) {
+//        // /getUserInfo
+//        //        Получение данных авторизованного пользователя из таблицы users, а именно:
+//        //        ·         Users.fullname
+//        //        ·         Users.balance
+//        //        ·         Users.superuser
+//        return user;
+//    }
 
     @PostMapping("/addUser")
     public User addUser(@RequestBody User user) {
