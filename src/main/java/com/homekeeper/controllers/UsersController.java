@@ -9,6 +9,7 @@ import org.springframework.web.bind.annotation.*;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -29,8 +30,8 @@ public class UsersController {
     @GetMapping("/getUserInfo")
     @ResponseBody
     public Object getUserInfo(Authentication authentication) {
-        // return authentication.getName();
-        return authentication.getPrincipal();
+        Optional user = userRepository.findByUserName(authentication.getName());
+        return user;
     }
 
 //    @GetMapping("{id}")

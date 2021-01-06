@@ -69,11 +69,18 @@ public class AuthController {
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
-        return ResponseEntity.ok(new JwtResponse(jwt,
+        return ResponseEntity.  ok(new JwtResponse(jwt,
                 userDetails.getId(),
                 userDetails.getUsername(),
                 userDetails.getEmail(),
                 roles));
+    }
+
+    @PostMapping("/logout")
+    public ResponseEntity<?> logoutUser(Authentication authentication) {
+        return (ResponseEntity<?>) ResponseEntity
+                .badRequest()
+                .body(new MessageResponse("You are logout."));
     }
 
     @PostMapping("/singup")
