@@ -9,6 +9,23 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Модель пользователя. Записывается в БД в таблицу с имененм users.
+ * @version 0.013
+ * @author habatoo
+ *
+ * @param "id" - primary key таблицы users.
+ * @param "userName" - имя пользователя - предпоалагается строковоя переменная Имя + Фамилия.
+ * @param "password" - пароль, в БД хранится в виде хешированном виде.
+ * @param "userEmail" - email пользователя.
+ * @param "creationDate" - дата создания пользователя.
+ *
+ * @param "roles" - email пользователя, связи через таблицу user-roles
+ * @see Role (роли пользователя).
+ *
+ * @param "balances" - email пользователя, связи через таблицу user_balances
+ * @see UserBalance (платежи внесенные пользователем).
+ */
 @Entity
 @Table(name = "users")
 @ToString(of = {"id", "firstName", "lastName", "userEmail", "creationDate"})

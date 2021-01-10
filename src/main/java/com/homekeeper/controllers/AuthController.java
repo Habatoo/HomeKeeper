@@ -1,53 +1,42 @@
 package com.homekeeper.controllers;
 
-import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
-
-import javax.validation.Valid;
-
+import com.homekeeper.models.ERoles;
+import com.homekeeper.payload.request.LoginRequest;
+import com.homekeeper.payload.response.JwtResponse;
+import com.homekeeper.payload.response.MessageResponse;
+import com.homekeeper.security.jwt.JwtUtils;
+import com.homekeeper.security.services.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
-import com.homekeeper.models.ERoles;
-import com.homekeeper.models.Role;
-import com.homekeeper.models.User;
-import com.homekeeper.payload.request.LoginRequest;
-import com.homekeeper.payload.request.SignupRequest;
-import com.homekeeper.payload.response.JwtResponse;
-import com.homekeeper.payload.response.MessageResponse;
-import com.homekeeper.repository.RoleRepository;
-import com.homekeeper.repository.UserRepository;
-import com.homekeeper.security.jwt.JwtUtils;
-import com.homekeeper.security.services.UserDetailsImpl;
+import javax.validation.Valid;
+import java.util.List;
+import java.util.stream.Collectors;
 
+/**
+ * Контроллер доступа. Реализваны методы login, logout TODO.
+ * @version 0.013
+ * @author habatoo
+ *
+ * @method authenticateUser - при http post запросе по адресу .../api/auth/login
+ * @param "loginRequest" - запрос на доступ с параметрами user login+password.
+ * @see LoginRequest
+ *
+ * @method logoutUser - при http ?? get запросе по адресу .../api/auth/logout TODO
+ * @param "authentication" - запрос на доступ с параметрами user login+password. TODO
+ * @see Authentication ???  TODO
+ */
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
     @Autowired
     AuthenticationManager authenticationManager;
-
-    @Autowired
-    UserRepository userRepository;
-
-    @Autowired
-    RoleRepository roleRepository;
-
-    @Autowired
-    PasswordEncoder encoder;
 
     @Autowired
     JwtUtils jwtUtils;
@@ -83,57 +72,4 @@ public class AuthController {
                 .body(new MessageResponse("You are logout."));
     }
 
-//    @PostMapping("/singup")
-//    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-//        if (userRepository.existsByUserName(
-//                signUpRequest.getUserName()
-//        )) {
-//            return ResponseEntity
-//                    .badRequest()
-//                    .body(new MessageResponse("Error: Username is already taken!"));
-//        }
-//
-//        if (userRepository.existsByUserEmail(signUpRequest.getEmail())) {
-//            return ResponseEntity
-//                    .badRequest()
-//                    .body(new MessageResponse("Error: Email is already in use!"));
-//        }
-//
-//        // Create new user's account
-//        User user = new User(
-//                signUpRequest.getUserName(),
-//                signUpRequest.getEmail(),
-//                encoder.encode(signUpRequest.getPassword())
-//        );
-//
-//        Set<String> strRoles = signUpRequest.getRole();
-//        Set<Role> roles = new HashSet<>();
-//
-//        if (strRoles == null) {
-//            Role userRole = roleRepository.findByRoleName(ERoles.ROLE_USER)
-//                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-//            roles.add(userRole);
-//        } else {
-//            strRoles.forEach(role -> {
-//                switch (role) {
-//                    case "admin":
-//                        Role adminRole = roleRepository.findByRoleName(ERoles.ROLE_ADMIN)
-//                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-//                        roles.add(adminRole);
-//
-//                        break;
-//                    default:
-//                        Role userRole = roleRepository.findByRoleName(ERoles.ROLE_USER)
-//                                .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
-//                        roles.add(userRole);
-//                }
-//            });
-//        }
-//
-//        user.setRoles(roles);
-//        user.setCreationDate(LocalDateTime.now());
-//        userRepository.save(user);
-//
-//        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
-//    }
 }

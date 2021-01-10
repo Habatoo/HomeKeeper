@@ -5,6 +5,15 @@ import lombok.ToString;
 
 import javax.persistence.*;
 
+/**
+ * Модель ролей. Записывается в БД в таблицу с имененм roles.
+ * @version 0.013
+ * @author habatoo
+ *
+ * @param "id" - primary key таблицы roles.
+ * @param "roleName" - наименовение роли.
+ * @see ERoles (перечень возможных ролей пользователя).
+ */
 @Entity
 @Table(name = "roles")
 @ToString(of = {"id", "roleName"})
