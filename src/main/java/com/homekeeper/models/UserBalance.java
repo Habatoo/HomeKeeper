@@ -7,6 +7,16 @@ import lombok.ToString;
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * Модель с данными платежей пользователя и текущим балансом каждого пользователя.
+ * Записывается в БД в таблицу с имененм userbalances.
+ * @version 0.013
+ * @author habatoo
+ *
+ * @param "id" - primary key таблицы userbalances.
+ * @param "balanceDate" - наименовение роли.
+ * @param "balanceSumOfBalance" - наименовение роли.
+ */
 @Entity
 @Table(name = "userbalances")
 @ToString(of = {"id",
@@ -23,5 +33,7 @@ public class UserBalance {
     private LocalDateTime balanceDate;
 
     private String balanceSumOfBalance;
+
+
 
 }

@@ -1,23 +1,27 @@
 package com.homekeeper.controllers;
 
-import org.springframework.web.bind.annotation.CrossOrigin;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-//
-//@RestController
-//@RequestMapping("/")
+import com.homekeeper.repository.PaymentRepository;
+import com.homekeeper.repository.RoleRepository;
+import com.homekeeper.repository.UserBalanceRepository;
+import com.homekeeper.repository.UserRepository;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.web.bind.annotation.*;
+
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
 @RequestMapping("/api/auth")
 public class MainController {
+    @Autowired
+    UserRepository userRepository;
 
-    @GetMapping("/")
-    public String authUser() {
-        //        /auth
-        //        Метод авторизации пользователя
-        return "/auth";
-    }
+    @Autowired
+    RoleRepository roleRepository;
+
+    @Autowired
+    PaymentRepository paymentRepository;
+
+    @Autowired
+    UserBalanceRepository userBalanceRepository;
 
     @GetMapping("/getCalculation")
     public String getCalculation() {
