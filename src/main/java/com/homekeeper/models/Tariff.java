@@ -4,9 +4,18 @@ import com.fasterxml.jackson.annotation.JsonFormat;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
+import java.math.BigDecimal;
+import java.util.Currency;
+
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * Тарифы на коммунальные услуги с историей изменений величины татифов.
+ *  * @version 0.013
+ *  * @author habatoo
+ *
+ */
 @Entity
 @Table(name = "tariffs")
 @ToString(of = {"id",
@@ -33,10 +42,18 @@ public class Tariff {
     private LocalDateTime dateRateChange;
 
     public Tariff() {
-
     }
 
+    /**
+     * Конструктор тарифов.
+     * @param waterColdRate
+     * @param waterHotRate
+     * @param electricityRate
+     * @param internetRate
+     * @param rentRate
+     */
     public Tariff(double waterColdRate, double waterHotRate, double electricityRate, double internetRate, double rentRate) {
+        // BigDecimal.ROUND_DOWN);
         this.waterColdRate = waterColdRate;
         this.waterHotRate = waterHotRate;
         this.electricityRate = electricityRate;

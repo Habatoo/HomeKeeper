@@ -30,8 +30,6 @@
 			<version>0.9.1</version>
 		</dependency>
 
-
-
 		<!-- Web -->
 		<dependency>
 			<groupId>org.springframework.boot</groupId>
@@ -70,7 +68,14 @@
 		<artifactId>flyway-core</artifactId>
 		</dependency>-->
 
-
+		<!-- Money
+		<dependency>
+			<groupId>org.javamoney</groupId>
+			<artifactId>moneta</artifactId>
+			<version>1.4.2</version>
+			<type>pom</type>
+		</dependency>
+		-->
 
 		<dependency>
 			<groupId>org.projectlombok</groupId>

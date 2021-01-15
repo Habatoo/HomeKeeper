@@ -57,15 +57,18 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "balance_id"))
     private Set<UserBalance> balances = new HashSet<>();
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(	name = "user_pays",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "pay_id"))
-    private Set<Payment> payments = new HashSet<>();
-
+    /**
+     * Пустой конструктор
+     */
     public User() {
     }
 
+    /**
+     * Конструктор для создания пользователя.
+     * @param userName - имя пользователя - предпоалагается строковоя переменная Имя + Фамилия.
+     * @param userEmail - email пользователя.
+     * @param password - пароль, в БД хранится в виде хешированном виде.
+     */
     public User(String userName, String userEmail, String password) {
         this.userName = userName;
         this.userEmail = userEmail;
@@ -128,11 +131,4 @@ public class User {
         this.balances = balances;
     }
 
-    public Set<Payment> getPayments() {
-        return payments;
-    }
-
-    public void setPayments(Set<Payment> payments) {
-        this.payments = payments;
-    }
 }
