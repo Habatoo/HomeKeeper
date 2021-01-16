@@ -1,6 +1,7 @@
 package com.homekeeper.models;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.homekeeper.config.Money;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -18,7 +19,7 @@ import java.time.LocalDateTime;
  * @param "balanceSumOfBalance" - наименовение роли.
  */
 @Entity
-@Table(name = "userbalances")
+@Table(name = "userBalances")
 @ToString(of = {"id",
         "balanceDate",
         "balanceSumOfBalance"
@@ -32,7 +33,7 @@ public class UserBalance {
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime balanceDate;
 
-    private String balanceSumOfBalance;
+    private Money balanceSumOfBalance;
 
 
 
