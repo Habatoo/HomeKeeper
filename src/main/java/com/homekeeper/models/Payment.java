@@ -43,22 +43,22 @@ public class Payment {
     private Long id;
 
     private double waterColdValueCurrentMonth;
-    private Money waterColdSum;
+    private String waterColdSum;
 
     private double waterWarmValueCurrentMonth;
-    private Money waterWarmSum;
+    private String waterWarmSum;
 
     private double electricityValueCurrentMonth;
-    private Money electricitySum;
+    private String electricitySum;
 
     private double internetValueCurrentMonth;
-    private Money internetSum;
+    private String internetSum;
 
     private double waterOutValueCurrentMonth;
-    private Money waterOutSum;
+    private String waterOutSum;
 
-    private Money rentRateSum;
-    private Money rentSum;
+    private String rentRateSum;
+    private String rentSum;
 
     private int homeMates;
 
@@ -66,7 +66,7 @@ public class Payment {
     private LocalDateTime paymentDate;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(	name = "payment_tariffs",
+    @JoinTable(	name = "payments_tariffs",
             joinColumns = @JoinColumn(name = "payment_id"),
             inverseJoinColumns = @JoinColumn(name = "tariff_id"))
     private Set<Tariff> tariffs = new HashSet<>();
@@ -92,17 +92,17 @@ public class Payment {
      */
     public Payment(
             double waterColdValueCurrentMonth,
-            Money waterColdSum,
+            String waterColdSum,
             double waterWarmValueCurrentMonth,
-            Money waterWarmSum,
+            String waterWarmSum,
             double electricityValueCurrentMonth,
-            Money electricitySum,
+            String electricitySum,
             double internetValueCurrentMonth,
-            Money internetSum,
+            String internetSum,
             double waterOutValueCurrentMonth,
-            Money waterOutSum,
-            Money rentRateSum,
-            Money rentSum,
+            String waterOutSum,
+            String rentRateSum,
+            String rentSum,
             int homeMates) {
         this.waterColdValueCurrentMonth = waterColdValueCurrentMonth;
         this.waterColdSum = waterColdSum;
@@ -135,11 +135,11 @@ public class Payment {
         this.waterColdValueCurrentMonth = waterColdValueCurrentMonth;
     }
 
-    public Money getWaterColdSum() {
+    public String getWaterColdSum() {
         return waterColdSum;
     }
 
-    public void setWaterColdSum(Money waterColdSum) {
+    public void setWaterColdSum(String waterColdSum) {
         this.waterColdSum = waterColdSum;
     }
 
@@ -151,11 +151,11 @@ public class Payment {
         this.waterWarmValueCurrentMonth = waterWarmValueCurrentMonth;
     }
 
-    public Money getWaterWarmSum() {
+    public String getWaterWarmSum() {
         return waterWarmSum;
     }
 
-    public void setWaterWarmSum(Money waterWarmSum) {
+    public void setWaterWarmSum(String waterWarmSum) {
         this.waterWarmSum = waterWarmSum;
     }
 
@@ -167,11 +167,11 @@ public class Payment {
         this.electricityValueCurrentMonth = electricityValueCurrentMonth;
     }
 
-    public Money getElectricitySum() {
+    public String getElectricitySum() {
         return electricitySum;
     }
 
-    public void setElectricitySum(Money electricitySum) {
+    public void setElectricitySum(String electricitySum) {
         this.electricitySum = electricitySum;
     }
 
@@ -183,11 +183,11 @@ public class Payment {
         this.internetValueCurrentMonth = internetValueCurrentMonth;
     }
 
-    public Money getInternetSum() {
+    public String getInternetSum() {
         return internetSum;
     }
 
-    public void setInternetSum(Money internetSum) {
+    public void setInternetSum(String internetSum) {
         this.internetSum = internetSum;
     }
 
@@ -199,27 +199,27 @@ public class Payment {
         this.waterOutValueCurrentMonth = waterOutValueCurrentMonth;
     }
 
-    public Money getWaterOutSum() {
+    public String getWaterOutSum() {
         return waterOutSum;
     }
 
-    public void setWaterOutSum(Money waterOutSum) {
+    public void setWaterOutSum(String waterOutSum) {
         this.waterOutSum = waterOutSum;
     }
 
-    public Money getRentRateSum() {
+    public String getRentRateSum() {
         return rentRateSum;
     }
 
-    public void setRentRateSum(Money rentRateSum) {
+    public void setRentRateSum(String rentRateSum) {
         this.rentRateSum = rentRateSum;
     }
 
-    public Money getRentSum() {
+    public String getRentSum() {
         return rentSum;
     }
 
-    public void setRentSum(Money rentSum) {
+    public void setRentSum(String rentSum) {
         this.rentSum = rentSum;
     }
 
@@ -246,4 +246,5 @@ public class Payment {
     public void setTariffs(Set<Tariff> tariffs) {
         this.tariffs = tariffs;
     }
+
 }

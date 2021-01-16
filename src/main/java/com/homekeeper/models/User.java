@@ -5,6 +5,7 @@ import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import javax.persistence.*;
+import java.io.Serializable;
 import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
@@ -25,12 +26,15 @@ import java.util.Set;
  *
  * @param "balances" - email пользователя, связи через таблицу user_balances
  * @see UserBalance (платежи внесенные пользователем).
+ *
+ *  @param "token" - email пользователя, связи через таблицу user_balances
+ *  @see Token (токены пользователя).
  */
 @Entity
 @Table(name = "users")
 @ToString(of = {"id", "firstName", "lastName", "userEmail", "creationDate"})
 @EqualsAndHashCode(of = {"id"})
-public class User {
+public class User implements Serializable {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -51,11 +55,11 @@ public class User {
             inverseJoinColumns = @JoinColumn(name = "role_id"))
     private Set<Role> roles = new HashSet<>();
 
-    @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(	name = "user_balances",
-            joinColumns = @JoinColumn(name = "user_id"),
-            inverseJoinColumns = @JoinColumn(name = "balance_id"))
-    private Set<UserBalance> balances = new HashSet<>();
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private Set<UserBalance> balances;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY, orphanRemoval = true)
+    private Set<Token> tokens;
 
     /**
      * Пустой конструктор
@@ -131,4 +135,11 @@ public class User {
         this.balances = balances;
     }
 
+    public Set<Token> getTokens() {
+        return tokens;
+    }
+
+    public void setTokens(Set<Token> tokens) {
+        this.tokens = tokens;
+    }
 }

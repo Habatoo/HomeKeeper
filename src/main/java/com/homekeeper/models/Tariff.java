@@ -32,11 +32,11 @@ public class Tariff {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private Money waterColdRate;
-    private Money waterHotRate;
-    private Money electricityRate;
-    private Money internetRate;
-    private Money rentRate;
+    private String waterColdRate;
+    private String waterHotRate;
+    private String electricityRate;
+    private String internetRate;
+    private String rentRate;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime dateRateChange;
@@ -52,7 +52,7 @@ public class Tariff {
      * @param internetRate тарф на интернет, рублей.копеек.
      * @param rentRate тариф на квартплату, рублей.копеек.
      */
-    public Tariff(Money waterColdRate, Money waterHotRate, Money electricityRate, Money internetRate, Money rentRate) {
+    public Tariff(String waterColdRate, String waterHotRate, String electricityRate, String internetRate, String rentRate) {
         this.waterColdRate = waterColdRate;
         this.waterHotRate = waterHotRate;
         this.electricityRate = electricityRate;
@@ -68,43 +68,43 @@ public class Tariff {
         this.id = id;
     }
 
-    public Money getWaterColdRate() {
+    public String getWaterColdRate() {
         return waterColdRate;
     }
 
-    public void setWaterColdRate(Money waterColdRate) {
+    public void setWaterColdRate(String waterColdRate) {
         this.waterColdRate = waterColdRate;
     }
 
-    public Money getWaterHotRate() {
+    public String getWaterHotRate() {
         return waterHotRate;
     }
 
-    public void setWaterHotRate(Money waterHotRate) {
+    public void setWaterHotRate(String waterHotRate) {
         this.waterHotRate = waterHotRate;
     }
 
-    public Money getElectricityRate() {
+    public String getElectricityRate() {
         return electricityRate;
     }
 
-    public void setElectricityRate(Money electricityRate) {
+    public void setElectricityRate(String electricityRate) {
         this.electricityRate = electricityRate;
     }
 
-    public Money getInternetRate() {
+    public String getInternetRate() {
         return internetRate;
     }
 
-    public void setInternetRate(Money internetRate) {
+    public void setInternetRate(String internetRate) {
         this.internetRate = internetRate;
     }
 
-    public Money getRentRate() {
+    public String getRentRate() {
         return rentRate;
     }
 
-    public void setRentRate(Money rentRate) {
+    public void setRentRate(String rentRate) {
         this.rentRate = rentRate;
     }
 

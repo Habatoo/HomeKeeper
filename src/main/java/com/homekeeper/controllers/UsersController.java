@@ -28,40 +28,6 @@ import java.util.Set;
  * @version 0.013
  * @author habatoo
  *
- * @method userList - при http GET запросе по адресу .../api/auth/users
- * @return {@code List<user>} - список всех пользователей с полными данными пользователей.
- * @see User
- * @see Role
- * @see com.homekeeper.models.UserBalance
- *
- * @method getUserInfo - при http GET запросе по адресу .../api/auth/users/getUserInfo
- * возвращает данные
- * @param "authentication" - данные по текущему аутентифицированному пользователю
- * @return {@code userRepository} - полные данные пользователя.
- * @see UserRepository
- *
- * @method registerUser - при http POST запросе по адресу .../api/auth/users/addUser
- * возвращает данные
- * @return {@code ResponseEntity.ok - User registered successfully!} - ок при успешной регистрации.
- * @return {@code ResponseEntity.badRequest - Error: Role is not found.} - ошибка при указании неправильной роли.
- * @return {@code ResponseEntity.badRequest - Error: Username is already taken!} - ошибка при дублировании username при регистрации.
- * @return {@code ResponseEntity.badRequest - Error: Email is already in use!} - ошибка при дублировании email при регистрации.
- * @param "signUpRequest" - входные данные по текущему аутентифицированному пользователю
- * @see ResponseEntity
- * @see SignupRequest
- * метод доступен только для пользователей с ролью АДМИН
- *
- * @method changeUser - при http PUT запросе по адресу .../api/auth/users/{id}
- * возвращает данные
- * @return - измененные данные пользовалеля, id изменению не подлежит.
- * @param "id" - входные данные - id пользователя, данные которого редактируются.
- * @see UserRepository
- *
- * @method deleteUser - при http DELETE запросе по адресу .../api/auth/users/{id}
- * возвращает данные
- * @return - удаление пользователя с запрошенным id из БД.
- * @param "id" - входные данные - id пользователя, данные которого требуется удалить.
- * @see UserRepository
  */
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -84,28 +50,46 @@ public class UsersController {
     @Autowired
     JwtUtils jwtUtils;
 
+    /**
+     * @method userList - при http GET запросе по адресу .../api/auth/users
+     * @return {@code List<user>} - список всех пользователей с полными данными пользователей.
+     * @see User
+     * @see Role
+     * @see com.homekeeper.models.UserBalance
+     */
     @GetMapping
     public List<User> userList() {
         return userRepository.findAll();
     }
 
+    /**
+     * @method getUserInfo - при http GET запросе по адресу .../api/auth/users/getUserInfo
+     * @param authentication - данные по текущему аутентифицированному пользователю
+     * возвращает данные
+     * @return {@code userRepository} - полные данные пользователя - user.userName, user.balance, user.roles
+     * @see UserRepository
+     */
     @GetMapping("/getUserInfo")
     @ResponseBody
     public Object getUserInfo(Authentication authentication) {
-        // /getUserInfo
-        //        Получение данных авторизованного пользователя из таблицы users, а именно:
-        //        ·         Users.fullname
-        //        ·         Users.balance
-        //        ·         Users.superuser
-        // Optional user = userRepository.findByUserName(authentication.getName());
         return userRepository.findByUserName(authentication.getName());
     }
 
+    /**
+     * @method registerUser - при http POST запросе по адресу .../api/auth/users/addUser
+     * @param signUpRequest - входные данные по текущему аутентифицированному пользователю
+     * возвращает данные
+     * @return {@code ResponseEntity.ok - User registered successfully!} - ок при успешной регистрации.
+     * @return {@code ResponseEntity.badRequest - Error: Role is not found.} - ошибка при указании неправильной роли.
+     * @return {@code ResponseEntity.badRequest - Error: Username is already taken!} - ошибка при дублировании username при регистрации.
+     * @return {@code ResponseEntity.badRequest - Error: Email is already in use!} - ошибка при дублировании email при регистрации.
+     * @see ResponseEntity
+     * @see SignupRequest
+     * метод доступен только для пользователей с ролью ADMIN
+     */
     @PostMapping("/addUser")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
-        //        /addUser
-        //        Добавление нового пользователя
         if (userRepository.existsByUserName(
                 signUpRequest.getUserName()
         )) {
@@ -158,22 +142,33 @@ public class UsersController {
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
 
+    /**
+     * @method changeUser - при http PUT запросе по адресу .../api/auth/users/{id}
+     * {id} - входные данные - id пользователя, данные которого редактируются, id не редактируетс
+     * возвращает данные
+     * @return - измененные данные пользовалеля, id изменению не подлежит.
+     * @param userFromDb - данные пользователя отредактированные из формы
+     * @param user - текущие данные пользователя
+     * @see UserRepository
+     */
     @PutMapping("{id}")
     public User changeUser(
             @PathVariable("id") User userFromDb,
             @RequestBody User user
     ) {
-        //        /changeUser
-        //        Изменение пользователя (пароль, баланс)
         BeanUtils.copyProperties(user, userFromDb, "id");
 
         return userRepository.save(userFromDb);
     }
 
+    /**
+     * @method deleteUser - при http DELETE запросе по адресу .../api/auth/users/{id}
+     * {id} - входные данные - id пользователя, данные которого удаляются.
+     * @param user - обьект пользователя для удаления.
+     * @see UserRepository
+     */
     @DeleteMapping("{id}")
     public void deleteUser(@PathVariable("id") User user) {
-        //        /deleteUser
-        //        Удаление пользователя
         userRepository.delete(user);
     }
 

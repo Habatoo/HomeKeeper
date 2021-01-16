@@ -1,9 +1,11 @@
 package com.homekeeper.controllers;
 
-import com.homekeeper.models.ERoles;
+import com.homekeeper.models.Token;
+import com.homekeeper.models.User;
 import com.homekeeper.payload.request.LoginRequest;
 import com.homekeeper.payload.response.JwtResponse;
 import com.homekeeper.payload.response.MessageResponse;
+import com.homekeeper.repository.UserRepository;
 import com.homekeeper.security.jwt.JwtUtils;
 import com.homekeeper.security.services.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -23,10 +25,6 @@ import java.util.stream.Collectors;
  * @version 0.013
  * @author habatoo
  *
- * @method authenticateUser - при http post запросе по адресу .../api/auth/login
- * @param "loginRequest" - запрос на доступ с параметрами user login+password.
- * @see LoginRequest
- *
  * @method logoutUser - при http ?? get запросе по адресу .../api/auth/logout TODO
  * @param "authentication" - запрос на доступ с параметрами user login+password. TODO
  * @see Authentication ???  TODO
@@ -36,14 +34,23 @@ import java.util.stream.Collectors;
 @RequestMapping("/api/auth")
 public class AuthController {
     @Autowired
+    UserRepository userRepository;
+
+    @Autowired
     AuthenticationManager authenticationManager;
 
     @Autowired
     JwtUtils jwtUtils;
 
+    /**
+     * @method authenticateUser - при http post запросе по адресу .../api/auth/login
+     * @param loginRequest - запрос на доступ с параметрами user login+password.
+     * возвращает
+     * @return {@code ResponseEntity ответ}
+     * @see LoginRequest
+     */
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@Valid @RequestBody LoginRequest loginRequest) {
-
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getUserName(),
@@ -58,7 +65,9 @@ public class AuthController {
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
-        return ResponseEntity.  ok(new JwtResponse(jwt,
+        // Token token = new Token(jwt, (User) userRepository.findByUserName(userDetails.getUsername()));
+
+        return ResponseEntity.ok(new JwtResponse(jwt,
                 userDetails.getId(),
                 userDetails.getUsername(),
                 userDetails.getEmail(),
