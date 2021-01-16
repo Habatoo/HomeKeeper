@@ -40,7 +40,6 @@ public class UsersController {
         this.userRepository = userRepository;
     }
 
-
     @Autowired
     RoleRepository roleRepository;
 
@@ -58,6 +57,7 @@ public class UsersController {
      * @see com.homekeeper.models.UserBalance
      */
     @GetMapping
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public List<User> userList() {
         return userRepository.findAll();
     }
@@ -70,6 +70,7 @@ public class UsersController {
      * @see UserRepository
      */
     @GetMapping("/getUserInfo")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @ResponseBody
     public Object getUserInfo(Authentication authentication) {
         return userRepository.findByUserName(authentication.getName());
@@ -152,6 +153,7 @@ public class UsersController {
      * @see UserRepository
      */
     @PutMapping("{id}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public User changeUser(
             @PathVariable("id") User userFromDb,
             @RequestBody User user
@@ -168,7 +170,9 @@ public class UsersController {
      * @see UserRepository
      */
     @DeleteMapping("{id}")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public void deleteUser(@PathVariable("id") User user) {
+
         userRepository.delete(user);
     }
 
