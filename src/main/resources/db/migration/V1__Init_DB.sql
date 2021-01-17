@@ -16,10 +16,11 @@ create table payments (id bigint not null auto_increment, electricity_sum varcha
 create table payments_tariffs (payment_id bigint not null, tariff_id bigint not null, primary key (payment_id, tariff_id)) engine=InnoDB;
 create table roles (id integer not null auto_increment, role_name varchar(20), primary key (id)) engine=InnoDB;
 create table tariffs (id bigint not null auto_increment, date_rate_change datetime, electricity_rate varchar(255), internet_rate varchar(255), rent_rate varchar(255), water_cold_rate varchar(255), water_hot_rate varchar(255), primary key (id)) engine=InnoDB;
-create table tokens (id bigint not null auto_increment, active bit not null, creation_date datetime, token varchar(255), user_id bigint, primary key (id)) engine=InnoDB;
+create table tokens (id bigint not null auto_increment, active bit, creation_date datetime, token varchar(500) not null, user_id bigint, primary key (id)) engine=InnoDB;
 create table user_roles (user_id bigint not null, role_id integer not null, primary key (user_id, role_id)) engine=InnoDB;
 create table user_balances (id bigint not null auto_increment, balance_date datetime, balance_sum_of_balance varchar(255), user_id bigint, primary key (id)) engine=InnoDB;
 create table users (id bigint not null auto_increment, creation_date datetime, password varchar(255), user_email varchar(255), user_name varchar(255), primary key (id)) engine=InnoDB;
+alter table tokens add constraint UK_na3v9f8s7ucnj16tylrs822qj unique (token);
 alter table payments_tariffs add constraint FKfu5658f1l4mtgyx0dcg99axvf foreign key (tariff_id) references tariffs (id);
 alter table payments_tariffs add constraint FKaohjgoth0s3c0bxddtws9hdn8 foreign key (payment_id) references payments (id);
 alter table tokens add constraint FK2dylsfo39lgjyqml2tbe0b0ss foreign key (user_id) references users (id);

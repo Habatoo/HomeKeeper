@@ -46,9 +46,6 @@ public class UsersController {
     @Autowired
     PasswordEncoder encoder;
 
-    @Autowired
-    JwtUtils jwtUtils;
-
     /**
      * @method userList - при http GET запросе по адресу .../api/auth/users
      * @return {@code List<user>} - список всех пользователей с полными данными пользователей.
@@ -89,7 +86,7 @@ public class UsersController {
      * метод доступен только для пользователей с ролью ADMIN
      */
     @PostMapping("/addUser")
-    @PreAuthorize("hasRole('ADMIN')")
+    //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
         if (userRepository.existsByUserName(
                 signUpRequest.getUserName()
@@ -126,7 +123,6 @@ public class UsersController {
                         Role adminRole = roleRepository.findByRoleName(ERoles.ROLE_ADMIN)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(adminRole);
-
                         break;
                     default:
                         Role userRole = roleRepository.findByRoleName(ERoles.ROLE_USER)

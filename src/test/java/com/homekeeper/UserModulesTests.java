@@ -1,14 +1,28 @@
 package com.homekeeper;
 
+import com.homekeeper.controllers.UsersController;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.boot.test.context.SpringBootTest;
 
 @SpringBootTest
 public class UserModulesTests {
+    @Autowired
+    private UsersController usersController;
+
+    @Test
+    public void contextLoads() throws Exception {
+        assertThat(usersController).isNotNull();
+    }
+
     @Test
     @DisplayName("Проверяет создание пользователя с ролью ADMIN.")
     void testCreateAdmin() {
+        // usersController.userList();
+        System.out.println(usersController.userList());
     }
 
     @Test
