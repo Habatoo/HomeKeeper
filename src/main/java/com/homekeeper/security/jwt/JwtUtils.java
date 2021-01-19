@@ -2,8 +2,11 @@ package com.homekeeper.security.jwt;
 
 import java.util.Date;
 
+import com.homekeeper.models.Token;
+import com.homekeeper.repository.TokenRepository;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
@@ -23,6 +26,9 @@ public class JwtUtils {
     @Value("${homekeeper.app.jwtExpirationMs}")
     private int jwtExpirationMs;
 
+    @Autowired
+    TokenRepository tokenRepository;
+
     public String generateJwtToken(Authentication authentication) {
 
         UserDetailsImpl userPrincipal = (UserDetailsImpl) authentication.getPrincipal();
@@ -34,6 +40,12 @@ public class JwtUtils {
 
     public String getUserNameFromJwtToken(String token) {
         return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
+    }
+
+    public boolean getActiveStatusFromJwtToken(String token) {
+        Token unActiveToken = tokenRepository.findByToken(token);
+        unActiveToken.isActive();
+        return unActiveToken.isActive();
     }
 
     public boolean validateJwtToken(String authToken) {

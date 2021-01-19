@@ -18,10 +18,11 @@ import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Optional;
+import org.springframework.util.StringUtils;
 import java.util.stream.Collectors;
 
 /**
@@ -81,9 +82,6 @@ public class AuthController {
         token.setUser(userRepository.findByUserName(authentication.getName()).get());
         tokenRepository.save(token);
 
-//        System.out.println("TOKEN: " + jwt);
-//        System.out.println("TOKEN: " + token);
-
         return ResponseEntity.ok(new JwtResponse(jwt,
                 userDetails.getId(),
                 userDetails.getUsername(),
@@ -91,14 +89,22 @@ public class AuthController {
                 roles));
     }
 
-    @PostMapping("/logout")
-    public ResponseEntity<?> logoutUser(Authentication authentication) {
-//        String jwt = jwtUtils.generateJwtToken(authentication);
-//        User user = userRepository.findByUserName(authentication.getName()).get();
-        //        System.out.println("TOKEN: " + jwt);
-        //        System.out.println("TOKEN: " + token);
-        //Token token = Token(jwt, user);
-        //tokenRepository.delete();
+    /**
+     * @method logoutUser - при http post запросе по адресу .../api/auth/logout
+     * @param request - запрос на выход с параметрами user login+password + токен jwt.
+     * возвращает
+     * @return {@code ResponseEntity ответ}
+     * @see LoginRequest
+     */
+    @GetMapping("/logout")
+    public ResponseEntity<?> logoutUser(HttpServletRequest request) {
+        String headerAuth = request.getHeader("Authorization");
+        String jwt = headerAuth.substring(7, headerAuth.length());
+
+        Token unActiveToken = tokenRepository.findByToken(jwt);
+        unActiveToken.setActive(false);
+        tokenRepository.save(unActiveToken);
+
         return (ResponseEntity<?>) ResponseEntity
                 .badRequest()
                 .body(new MessageResponse("You are logout."));
