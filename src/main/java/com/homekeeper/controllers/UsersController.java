@@ -53,6 +53,7 @@ public class UsersController {
      * @see Role
      * @see com.homekeeper.models.UserBalance
      */
+    // TODO - less data, cut token information.
     @GetMapping
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public List<User> userList() {

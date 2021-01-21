@@ -1,7 +1,6 @@
 package com.homekeeper.controllers;
 
 import com.homekeeper.models.Token;
-import com.homekeeper.models.User;
 import com.homekeeper.payload.request.LoginRequest;
 import com.homekeeper.payload.response.JwtResponse;
 import com.homekeeper.payload.response.MessageResponse;
@@ -11,6 +10,7 @@ import com.homekeeper.security.jwt.JwtUtils;
 import com.homekeeper.security.services.UserDetailsImpl;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
@@ -22,17 +22,16 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.List;
-import org.springframework.util.StringUtils;
 import java.util.stream.Collectors;
 
 /**
- * Контроллер доступа. Реализваны методы login, logout TODO.
+ * Контроллер доступа. Реализваны методы login, logout.
  * @version 0.013
  * @author habatoo
  *
- * @method logoutUser - при http ?? get запросе по адресу .../api/auth/logout TODO
- * @param "authentication" - запрос на доступ с параметрами user login+password. TODO
- * @see Authentication ???  TODO
+ * @method logoutUser - при http ?? get запросе по адресу .../api/auth/logout
+ * @param "authentication" - запрос на доступ с параметрами user login+password.
+ *
  */
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -49,9 +48,6 @@ public class AuthController {
 
     @Autowired
     JwtUtils jwtUtils;
-
-    @Autowired
-    PasswordEncoder encoder;
 
     /**
      * @method authenticateUser - при http post запросе по адресу .../api/auth/login
@@ -97,6 +93,7 @@ public class AuthController {
      * @see LoginRequest
      */
     @GetMapping("/logout")
+    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> logoutUser(HttpServletRequest request) {
         String headerAuth = request.getHeader("Authorization");
         String jwt = headerAuth.substring(7, headerAuth.length());
