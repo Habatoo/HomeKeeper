@@ -1,14 +1,19 @@
 package com.homekeeper.controllers;
 
 import com.homekeeper.models.Token;
+import com.homekeeper.models.User;
 import com.homekeeper.payload.request.LoginRequest;
+import com.homekeeper.payload.request.PasswordRequest;
+import com.homekeeper.payload.response.PasswordResponse;
 import com.homekeeper.payload.response.JwtResponse;
 import com.homekeeper.payload.response.MessageResponse;
 import com.homekeeper.repository.TokenRepository;
 import com.homekeeper.repository.UserRepository;
 import com.homekeeper.security.jwt.JwtUtils;
 import com.homekeeper.security.services.UserDetailsImpl;
+
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -48,6 +53,12 @@ public class AuthController {
 
     @Autowired
     JwtUtils jwtUtils;
+
+    @Autowired
+    PasswordEncoder encoder;
+
+    @Value("${homekeeper.app.secretKey}")
+    private String secretKey;
 
     /**
      * @method authenticateUser - при http post запросе по адресу .../api/auth/login
@@ -102,9 +113,44 @@ public class AuthController {
         unActiveToken.setActive(false);
         tokenRepository.save(unActiveToken);
 
-        return (ResponseEntity<?>) ResponseEntity
+        return ResponseEntity
                 .badRequest()
                 .body(new MessageResponse("You are logout."));
+    }
+
+    /**
+     * @method resetPassword - при http post запросе по адресу .../api/auth/reset
+     * @param passwordRequest - запрос на сброс пароля с параметрами user login+sekretKey (хранится в env).
+     * возвращает
+     * @return {@code ResponseEntity ответ}
+     * @see LoginRequest
+     */
+    @PostMapping("/reset")
+    public ResponseEntity<?> resetPassword(@Valid @RequestBody PasswordRequest passwordRequest) {
+
+        if (!userRepository.existsByUserName(
+                passwordRequest.getUserName()
+        )) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Error: Username does not exist!"));
+        }
+
+        if (!secretKey.equals(passwordRequest.getSecretKey())) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Error: SecretKey does not valid!"));
+        }
+
+        User user = userRepository.findByUserName(passwordRequest.getUserName()).get();
+        user.setPassword(encoder.encode(passwordRequest.getPassword()));
+        userRepository.save(user);
+        System.out.println(user);
+
+        return ResponseEntity.ok(new PasswordResponse(
+                passwordRequest.getUserName(),
+                passwordRequest.getPassword()
+                ));
     }
 
 }

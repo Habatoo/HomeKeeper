@@ -7,7 +7,6 @@ import com.homekeeper.payload.request.SignupRequest;
 import com.homekeeper.payload.response.MessageResponse;
 import com.homekeeper.repository.RoleRepository;
 import com.homekeeper.repository.UserRepository;
-import com.homekeeper.security.jwt.JwtUtils;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -167,7 +166,7 @@ public class UsersController {
      * @see UserRepository
      */
     @DeleteMapping("{id}")
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public void deleteUser(@PathVariable("id") User user) {
 
         userRepository.delete(user);
