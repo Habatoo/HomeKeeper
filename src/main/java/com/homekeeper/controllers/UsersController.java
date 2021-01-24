@@ -3,18 +3,22 @@ package com.homekeeper.controllers;
 import com.homekeeper.models.ERoles;
 import com.homekeeper.models.Role;
 import com.homekeeper.models.User;
+import com.homekeeper.payload.request.LoginRequest;
 import com.homekeeper.payload.request.SignupRequest;
 import com.homekeeper.payload.response.MessageResponse;
 import com.homekeeper.repository.RoleRepository;
 import com.homekeeper.repository.UserRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
 
+import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.HashSet;
@@ -32,6 +36,9 @@ import java.util.Set;
 @RestController
 @RequestMapping("/api/auth/users")
 public class UsersController {
+    @Value("${homekeeper.app.remoteAddr}")
+    private String remoteAddr;
+
     private final UserRepository userRepository;
 
     @Autowired
@@ -54,7 +61,7 @@ public class UsersController {
      */
     // TODO - less data, cut token information.
     @GetMapping
-    @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
+    @PreAuthorize("hasRole('ADMIN')")
     public List<User> userList() {
         return userRepository.findAll();
     }
@@ -69,8 +76,15 @@ public class UsersController {
     @GetMapping("/getUserInfo")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @ResponseBody
-    public Object getUserInfo(Authentication authentication) {
-        return userRepository.findByUserName(authentication.getName());
+    public Object getUserInfo(HttpServletRequest request, Authentication authentication) {
+        if (remoteAddr.equals(request.getRemoteAddr())) {
+            return userRepository.findByUserName(authentication.getName()).get();
+        }
+        System.out.println(request.getRemoteAddr());
+        System.out.println(remoteAddr);
+        return ResponseEntity
+                .badRequest()
+                .body(new MessageResponse("Not support IP!"));
     }
 
     /**
