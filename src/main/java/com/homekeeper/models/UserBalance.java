@@ -34,9 +34,9 @@ public class UserBalance {
 
     private String balanceSumOfBalance;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
-    private User user;
+    private User userId;
 
     public UserBalance() {
     }
@@ -70,10 +70,10 @@ public class UserBalance {
     }
 
     public User getUser() {
-        return user;
+        return userId;
     }
 
-    public void setUser(User user) {
-        this.user = user;
+    public void setUser(User userId) {
+        this.userId = userId;
     }
 }

@@ -35,16 +35,16 @@ public class Token {
     @Column(name = "active")
     private boolean active;
 
-    @ManyToOne(fetch = FetchType.LAZY, cascade = CascadeType.ALL)
+    @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
-    private User user;
+    private User userId;
 
     public Token() {
     }
 
-    public Token(String token, User user) {
+    public Token(String token, User userId) {
         this.token = token;
-        this.user = user;
+        this.userId = userId;
     }
 
     public Long getId() {
@@ -80,10 +80,10 @@ public class Token {
     }
 
     public User getUser() {
-        return user;
+        return userId;
     }
 
     public void setUser(User user) {
-        this.user = user;
+        this.userId = userId;
     }
 }

@@ -77,14 +77,7 @@ public class UsersController {
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @ResponseBody
     public Object getUserInfo(HttpServletRequest request, Authentication authentication) {
-        if (remoteAddr.equals(request.getRemoteAddr())) {
-            return userRepository.findByUserName(authentication.getName()).get();
-        }
-        System.out.println(request.getRemoteAddr());
-        System.out.println(remoteAddr);
-        return ResponseEntity
-                .badRequest()
-                .body(new MessageResponse("Not support IP!"));
+        return userRepository.findByUserName(authentication.getName()).get();
     }
 
     /**
@@ -101,7 +94,14 @@ public class UsersController {
      */
     @PostMapping("/addUser")
     //@PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest, HttpServletRequest request) {
+        if (!remoteAddr.equals(request.getRemoteAddr())) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Not support IP!"));
+        }
+
+
         if (userRepository.existsByUserName(
                 signUpRequest.getUserName()
         )) {
@@ -115,6 +115,8 @@ public class UsersController {
                     .badRequest()
                     .body(new MessageResponse("Error: Email is already in use!"));
         }
+
+
 
         // Create new user's account
         User user = new User(
