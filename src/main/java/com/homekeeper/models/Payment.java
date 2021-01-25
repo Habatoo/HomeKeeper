@@ -1,6 +1,7 @@
 package com.homekeeper.models;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.homekeeper.config.Money;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -9,6 +10,14 @@ import java.time.LocalDateTime;
 import java.util.HashSet;
 import java.util.Set;
 
+/**
+ * Модель платежей. Записывается в БД в таблицу с имененм payments.
+ * Платежи за коммунальные услуги по месяцам, с историей.
+ *  @version 0.013
+ *  @author habatoo
+ * Переменная paymentDate содержит дату оплаты.
+ *
+ */
 @Entity
 @Table(name = "payments")
 @ToString(of = {"id",
@@ -22,9 +31,9 @@ import java.util.Set;
         "internetSum",
         "waterOutValueCurrentMonth",
         "waterOutSum",
-        "rentValueMonth",
+        "rentRateSum",
         "rentSum",
-        "homemates",
+        "homeMates",
         "paymentDate"
 })
 @EqualsAndHashCode(of = {"id"})
@@ -34,39 +43,67 @@ public class Payment {
     private Long id;
 
     private double waterColdValueCurrentMonth;
-    private double waterColdSum;
+    private String waterColdSum;
 
     private double waterWarmValueCurrentMonth;
-    private double waterWarmSum;
+    private String waterWarmSum;
 
     private double electricityValueCurrentMonth;
-    private double electricitySum;
+    private String electricitySum;
 
     private double internetValueCurrentMonth;
-    private double internetSum;
+    private String internetSum;
 
     private double waterOutValueCurrentMonth;
-    private double waterOutSum;
+    private String waterOutSum;
 
-    private double rentValueMonth;
-    private double rentSum;
+    private String rentRateSum;
+    private String rentSum;
 
-    private int homemates;
+    private int homeMates;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime paymentDate;
 
     @ManyToMany(fetch = FetchType.LAZY)
-    @JoinTable(	name = "payment_tariffs",
+    @JoinTable(	name = "payments_tariffs",
             joinColumns = @JoinColumn(name = "payment_id"),
             inverseJoinColumns = @JoinColumn(name = "tariff_id"))
     private Set<Tariff> tariffs = new HashSet<>();
 
     public Payment() {
-
     }
 
-    public Payment(double waterColdValueCurrentMonth, double waterColdSum, double waterWarmValueCurrentMonth, double waterWarmSum, double electricityValueCurrentMonth, double electricitySum, double internetValueCurrentMonth, double internetSum, double waterOutValueCurrentMonth, double waterOutSum, double rentValueMonth, double rentSum, int homemates) {
+    /**
+     *
+     * @param waterColdValueCurrentMonth показания счетчика холодной воды
+     * @param waterColdSum итоговая сумма оплаты за холодную воду, рублей.копеек.
+     * @param waterWarmValueCurrentMonth показания счетчика холодной воды
+     * @param waterWarmSum итоговая сумма оплаты за холодную воду, рублей.копеек.
+     * @param electricityValueCurrentMonth показания счетчика холодной воды
+     * @param electricitySum итоговая сумма оплаты за холодную воду, рублей.копеек.
+     * @param internetValueCurrentMonth показания счетчика холодной воды
+     * @param internetSum итоговая сумма оплаты за холодную воду, рублей.копеек.
+     * @param waterOutValueCurrentMonth показания счетчика холодной воды
+     * @param waterOutSum итоговая сумма оплаты за холодную воду, рублей.копеек.
+     * @param rentRateSum итоговая сумма квартплаты, рублей.копеек.
+     * @param rentSum итоговая сумма аренды, рублей.копеек.
+     * @param homeMates количество проживающих.
+     */
+    public Payment(
+            double waterColdValueCurrentMonth,
+            String waterColdSum,
+            double waterWarmValueCurrentMonth,
+            String waterWarmSum,
+            double electricityValueCurrentMonth,
+            String electricitySum,
+            double internetValueCurrentMonth,
+            String internetSum,
+            double waterOutValueCurrentMonth,
+            String waterOutSum,
+            String rentRateSum,
+            String rentSum,
+            int homeMates) {
         this.waterColdValueCurrentMonth = waterColdValueCurrentMonth;
         this.waterColdSum = waterColdSum;
         this.waterWarmValueCurrentMonth = waterWarmValueCurrentMonth;
@@ -77,9 +114,9 @@ public class Payment {
         this.internetSum = internetSum;
         this.waterOutValueCurrentMonth = waterOutValueCurrentMonth;
         this.waterOutSum = waterOutSum;
-        this.rentValueMonth = rentValueMonth;
+        this.rentRateSum = rentRateSum;
         this.rentSum = rentSum;
-        this.homemates = homemates;
+        this.homeMates = homeMates;
     }
 
     public Long getId() {
@@ -98,11 +135,11 @@ public class Payment {
         this.waterColdValueCurrentMonth = waterColdValueCurrentMonth;
     }
 
-    public double getWaterColdSum() {
+    public String getWaterColdSum() {
         return waterColdSum;
     }
 
-    public void setWaterColdSum(double waterColdSum) {
+    public void setWaterColdSum(String waterColdSum) {
         this.waterColdSum = waterColdSum;
     }
 
@@ -114,11 +151,11 @@ public class Payment {
         this.waterWarmValueCurrentMonth = waterWarmValueCurrentMonth;
     }
 
-    public double getWaterWarmSum() {
+    public String getWaterWarmSum() {
         return waterWarmSum;
     }
 
-    public void setWaterWarmSum(double waterWarmSum) {
+    public void setWaterWarmSum(String waterWarmSum) {
         this.waterWarmSum = waterWarmSum;
     }
 
@@ -130,11 +167,11 @@ public class Payment {
         this.electricityValueCurrentMonth = electricityValueCurrentMonth;
     }
 
-    public double getElectricitySum() {
+    public String getElectricitySum() {
         return electricitySum;
     }
 
-    public void setElectricitySum(double electricitySum) {
+    public void setElectricitySum(String electricitySum) {
         this.electricitySum = electricitySum;
     }
 
@@ -146,11 +183,11 @@ public class Payment {
         this.internetValueCurrentMonth = internetValueCurrentMonth;
     }
 
-    public double getInternetSum() {
+    public String getInternetSum() {
         return internetSum;
     }
 
-    public void setInternetSum(double internetSum) {
+    public void setInternetSum(String internetSum) {
         this.internetSum = internetSum;
     }
 
@@ -162,36 +199,36 @@ public class Payment {
         this.waterOutValueCurrentMonth = waterOutValueCurrentMonth;
     }
 
-    public double getWaterOutSum() {
+    public String getWaterOutSum() {
         return waterOutSum;
     }
 
-    public void setWaterOutSum(double waterOutSum) {
+    public void setWaterOutSum(String waterOutSum) {
         this.waterOutSum = waterOutSum;
     }
 
-    public double getRentValueMonth() {
-        return rentValueMonth;
+    public String getRentRateSum() {
+        return rentRateSum;
     }
 
-    public void setRentValueMonth(double rentValueMonth) {
-        this.rentValueMonth = rentValueMonth;
+    public void setRentRateSum(String rentRateSum) {
+        this.rentRateSum = rentRateSum;
     }
 
-    public double getRentSum() {
+    public String getRentSum() {
         return rentSum;
     }
 
-    public void setRentSum(double rentSum) {
+    public void setRentSum(String rentSum) {
         this.rentSum = rentSum;
     }
 
-    public int getHomemates() {
-        return homemates;
+    public int getHomeMates() {
+        return homeMates;
     }
 
-    public void setHomemates(int homemates) {
-        this.homemates = homemates;
+    public void setHomeMates(int homeMates) {
+        this.homeMates = homeMates;
     }
 
     public LocalDateTime getPaymentDate() {
@@ -209,4 +246,5 @@ public class Payment {
     public void setTariffs(Set<Tariff> tariffs) {
         this.tariffs = tariffs;
     }
+
 }

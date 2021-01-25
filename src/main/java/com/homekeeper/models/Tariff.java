@@ -1,12 +1,21 @@
 package com.homekeeper.models;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.homekeeper.config.Money;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
 import javax.persistence.*;
 import java.time.LocalDateTime;
 
+/**
+ * Модель тарифов. Записывается в БД в таблицу с имененм tariffs.
+ * Тарифы на коммунальные услуги с историей изменений величины тарифов.
+ *  * @version 0.013
+ *  * @author habatoo
+ * Актуальные тарифы всегда находятся в таблице в строке с максимальным id,
+ * переменная dateRateChange содержит последнюю дату актуализации тарифов.
+ */
 @Entity
 @Table(name = "tariffs")
 @ToString(of = {"id",
@@ -23,20 +32,27 @@ public class Tariff {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    private double waterColdRate;
-    private double waterHotRate;
-    private double electricityRate;
-    private double internetRate;
-    private double rentRate;
+    private String waterColdRate;
+    private String waterHotRate;
+    private String electricityRate;
+    private String internetRate;
+    private String rentRate;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
     private LocalDateTime dateRateChange;
 
     public Tariff() {
-
     }
 
-    public Tariff(double waterColdRate, double waterHotRate, double electricityRate, double internetRate, double rentRate) {
+    /**
+     * Конструктор тарифов.
+     * @param waterColdRate тариф на холодную воду, рублей.копеек.
+     * @param waterHotRate тариф на горячую воду, рублей.копеек.
+     * @param electricityRate тариф на электричество, рублей.копеек.
+     * @param internetRate тарф на интернет, рублей.копеек.
+     * @param rentRate тариф на квартплату, рублей.копеек.
+     */
+    public Tariff(String waterColdRate, String waterHotRate, String electricityRate, String internetRate, String rentRate) {
         this.waterColdRate = waterColdRate;
         this.waterHotRate = waterHotRate;
         this.electricityRate = electricityRate;
@@ -52,43 +68,43 @@ public class Tariff {
         this.id = id;
     }
 
-    public double getWaterColdRate() {
+    public String getWaterColdRate() {
         return waterColdRate;
     }
 
-    public void setWaterColdRate(double waterColdRate) {
+    public void setWaterColdRate(String waterColdRate) {
         this.waterColdRate = waterColdRate;
     }
 
-    public double getWaterHotRate() {
+    public String getWaterHotRate() {
         return waterHotRate;
     }
 
-    public void setWaterHotRate(double waterHotRate) {
+    public void setWaterHotRate(String waterHotRate) {
         this.waterHotRate = waterHotRate;
     }
 
-    public double getElectricityRate() {
+    public String getElectricityRate() {
         return electricityRate;
     }
 
-    public void setElectricityRate(double electricityRate) {
+    public void setElectricityRate(String electricityRate) {
         this.electricityRate = electricityRate;
     }
 
-    public double getInternetRate() {
+    public String getInternetRate() {
         return internetRate;
     }
 
-    public void setInternetRate(double internetRate) {
+    public void setInternetRate(String internetRate) {
         this.internetRate = internetRate;
     }
 
-    public double getRentRate() {
+    public String getRentRate() {
         return rentRate;
     }
 
-    public void setRentRate(double rentRate) {
+    public void setRentRate(String rentRate) {
         this.rentRate = rentRate;
     }
 

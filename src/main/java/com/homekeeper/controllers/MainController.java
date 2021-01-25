@@ -2,7 +2,7 @@ package com.homekeeper.controllers;
 
 import com.homekeeper.repository.PaymentRepository;
 import com.homekeeper.repository.RoleRepository;
-import com.homekeeper.repository.UserBalanceRepository;
+//import com.homekeeper.repository.UserBalanceRepository;
 import com.homekeeper.repository.UserRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
@@ -20,8 +20,8 @@ public class MainController {
     @Autowired
     PaymentRepository paymentRepository;
 
-    @Autowired
-    UserBalanceRepository userBalanceRepository;
+//    @Autowired
+//    UserBalanceRepository userBalanceRepository;
 
     @GetMapping("/getCalculation")
     public String getCalculation() {
