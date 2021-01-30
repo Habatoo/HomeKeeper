@@ -7,6 +7,7 @@ import com.homekeeper.payload.request.LoginRequest;
 import com.homekeeper.payload.request.SignupRequest;
 import com.homekeeper.payload.response.MessageResponse;
 import com.homekeeper.repository.RoleRepository;
+import com.homekeeper.repository.UserBalanceRepository;
 import com.homekeeper.repository.UserRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,7 @@ import java.util.Set;
 
 /**
  * Контроллер работы с пользователями. Реализваны методы userList, changeUser, deleteUser
- * TODO, getUserInfo, registerUser.
+ * TODO, getUserInfo.
  * @version 0.013
  * @author habatoo
  *
@@ -76,15 +77,8 @@ public class UsersController {
     @GetMapping("/getUserInfo")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @ResponseBody
-    public Object getUserInfo(HttpServletRequest request, Authentication authentication) {
-        if (remoteAddr.equals(request.getRemoteAddr())) {
-            return userRepository.findByUserName(authentication.getName()).get();
-        }
-        System.out.println(request.getRemoteAddr());
-        System.out.println(remoteAddr);
-        return ResponseEntity
-                .badRequest()
-                .body(new MessageResponse("Not support IP!"));
+    public User getUserInfo(HttpServletRequest request, Authentication authentication) {
+        return userRepository.findByUserName(authentication.getName()).get();
     }
 
     /**
@@ -101,7 +95,14 @@ public class UsersController {
      */
     @PostMapping("/addUser")
     //@PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest) {
+    public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest, HttpServletRequest request) {
+        if (!remoteAddr.equals(request.getRemoteAddr())) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Not support IP!"));
+        }
+
+
         if (userRepository.existsByUserName(
                 signUpRequest.getUserName()
         )) {
@@ -115,6 +116,8 @@ public class UsersController {
                     .badRequest()
                     .body(new MessageResponse("Error: Email is already in use!"));
         }
+
+
 
         // Create new user's account
         User user = new User(
