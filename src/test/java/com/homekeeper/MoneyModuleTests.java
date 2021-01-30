@@ -120,4 +120,43 @@ public class MoneyModuleTests {
         assertEquals(currencyUSD, moneyUSD.getCurrency());
     }
 
+    @Test
+    @DisplayName("Проверяет сложение денежных единиц - два знака после запятой, значение валюты")
+    void testMoneyAdd() {
+        Object object;
+
+        // RUB test
+        String strValueFirstRUB = "50.69";
+        String strValueSecondRUB = "75.55";
+        Currency currencyRUB = Currency.getInstance("RUB");
+
+        Money moneyFirstRUB = new Money(strValueFirstRUB); // по умолчанию валюта рубль
+        BigDecimal firstBigDecimalRUB = new BigDecimal(strValueFirstRUB);
+        firstBigDecimalRUB.setScale(currencyRUB.getDefaultFractionDigits(), BigDecimal.ROUND_DOWN);
+
+        BigDecimal resultTestRUBAdd = new BigDecimal("126.24");
+
+        assertEquals(resultTestRUBAdd.setScale(currencyRUB.getDefaultFractionDigits(), BigDecimal.ROUND_DOWN), moneyFirstRUB.addMoney(strValueSecondRUB).getValue());
+        assertEquals(currencyRUB, moneyFirstRUB.getCurrency());
+        assertEquals(currencyRUB, new Money(strValueSecondRUB).getCurrency());
+
+        // USD test
+        Currency currencyUSD = Currency.getInstance("USD");
+        String strValueFirstUSD = "80.22";
+        String strValueSecondUSD = "69.99";
+
+        Money moneyFirstUSD = new Money(strValueFirstUSD, currencyUSD);
+        BigDecimal firstBigDecimalUSD = new BigDecimal(strValueFirstUSD);
+        firstBigDecimalUSD.setScale(currencyUSD.getDefaultFractionDigits(), BigDecimal.ROUND_DOWN);
+
+        BigDecimal resultTestUSDAdd = new BigDecimal("150.21");
+        BigDecimal resultTestUSDSub = new BigDecimal("10.23");
+
+        assertEquals(resultTestUSDAdd.setScale(currencyUSD.getDefaultFractionDigits(), BigDecimal.ROUND_DOWN), moneyFirstUSD.addMoney(strValueSecondUSD).getValue());
+        assertEquals(resultTestUSDSub.setScale(currencyUSD.getDefaultFractionDigits(), BigDecimal.ROUND_DOWN), moneyFirstUSD.subtractMoney(strValueSecondUSD).getValue());
+        assertEquals(currencyUSD, moneyFirstUSD.getCurrency());
+        assertEquals(currencyUSD, new Money(strValueSecondUSD, currencyUSD).getCurrency());
+
+    }
+
 }
