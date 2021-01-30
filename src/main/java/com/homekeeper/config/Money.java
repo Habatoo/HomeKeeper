@@ -39,7 +39,6 @@ public class Money {
 
     public Money multiplyByInt(int intValue) throws IllegalMoneyFormatException {
         Money newValue = new Money (String.valueOf(intValue));
-
         newValue.value = this.value.setScale(this.precision, BigDecimal.ROUND_DOWN).multiply(newValue.value.setScale(this.precision, BigDecimal.ROUND_DOWN));
         newValue.value = newValue.value.setScale(this.precision, BigDecimal.ROUND_DOWN);
         return newValue;
@@ -49,6 +48,18 @@ public class Money {
         Money newValue = new Money (String.valueOf(intValue));
         newValue.value = this.value.setScale(this.precision, BigDecimal.ROUND_DOWN).divide(newValue.value.setScale(this.precision, BigDecimal.ROUND_DOWN));
         newValue.value = newValue.value.setScale(this.precision, BigDecimal.ROUND_DOWN);
+        return newValue;
+    }
+
+    public Money addMoney(String moneyValue) throws IllegalMoneyFormatException {
+        Money newValue = new Money (String.valueOf(moneyValue));
+        newValue.value = value.setScale(precision, BigDecimal.ROUND_DOWN).add(newValue.value.setScale(newValue.precision, BigDecimal.ROUND_DOWN));
+        return newValue;
+    }
+
+    public Money subtractMoney(String moneyValue) throws IllegalMoneyFormatException {
+        Money newValue = new Money (String.valueOf(moneyValue));
+        newValue.value = value.setScale(precision, BigDecimal.ROUND_DOWN).subtract(newValue.value.setScale(newValue.precision, BigDecimal.ROUND_DOWN));
         return newValue;
     }
 
