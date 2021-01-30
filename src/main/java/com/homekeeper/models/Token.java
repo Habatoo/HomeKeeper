@@ -1,6 +1,9 @@
 package com.homekeeper.models;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -35,16 +38,19 @@ public class Token {
     @Column(name = "active")
     private boolean active;
 
+    @JsonIdentityInfo(
+            generator = ObjectIdGenerators.PropertyGenerator.class,
+            property = "id")
     @ManyToOne(optional = false, fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
-    private User userId;
+    private User user;
 
     public Token() {
     }
 
-    public Token(String token, User userId) {
+    public Token(String token, User user) {
         this.token = token;
-        this.userId = userId;
+        this.user = user;
     }
 
     public Long getId() {
@@ -80,10 +86,10 @@ public class Token {
     }
 
     public User getUser() {
-        return userId;
+        return user;
     }
 
     public void setUser(User user) {
-        this.userId = userId;
+        this.user = user;
     }
 }

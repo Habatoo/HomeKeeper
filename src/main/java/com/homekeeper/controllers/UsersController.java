@@ -7,6 +7,7 @@ import com.homekeeper.payload.request.LoginRequest;
 import com.homekeeper.payload.request.SignupRequest;
 import com.homekeeper.payload.response.MessageResponse;
 import com.homekeeper.repository.RoleRepository;
+import com.homekeeper.repository.UserBalanceRepository;
 import com.homekeeper.repository.UserRepository;
 import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -27,7 +28,7 @@ import java.util.Set;
 
 /**
  * Контроллер работы с пользователями. Реализваны методы userList, changeUser, deleteUser
- * TODO, getUserInfo, registerUser.
+ * TODO, getUserInfo.
  * @version 0.013
  * @author habatoo
  *
@@ -76,7 +77,7 @@ public class UsersController {
     @GetMapping("/getUserInfo")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @ResponseBody
-    public Object getUserInfo(HttpServletRequest request, Authentication authentication) {
+    public User getUserInfo(HttpServletRequest request, Authentication authentication) {
         return userRepository.findByUserName(authentication.getName()).get();
     }
 

@@ -1,6 +1,9 @@
 package com.homekeeper.models;
 
 import com.fasterxml.jackson.annotation.JsonFormat;
+import com.fasterxml.jackson.annotation.JsonIdentityInfo;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
+import com.fasterxml.jackson.annotation.ObjectIdGenerators;
 import lombok.EqualsAndHashCode;
 import lombok.ToString;
 
@@ -36,7 +39,10 @@ public class UserBalance {
 
     @ManyToOne(fetch = FetchType.EAGER, cascade = CascadeType.ALL)
     @JoinColumn(name = "user_id")
-    private User userId;
+    @JsonIdentityInfo(
+            generator = ObjectIdGenerators.PropertyGenerator.class,
+            property = "id")
+    private User user;
 
     public UserBalance() {
     }
@@ -70,10 +76,10 @@ public class UserBalance {
     }
 
     public User getUser() {
-        return userId;
+        return user;
     }
 
-    public void setUser(User userId) {
-        this.userId = userId;
+    public void setUser(User user) {
+        this.user = user;
     }
 }
