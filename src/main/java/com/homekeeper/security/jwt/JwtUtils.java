@@ -42,8 +42,8 @@ public class JwtUtils {
         return Jwts.parser().setSigningKey(jwtSecret).parseClaimsJws(token).getBody().getSubject();
     }
 
-    public boolean getActiveStatusFromJwtToken(String token) {
-        Token unActiveToken = tokenRepository.findByToken(token);
+    public boolean getActiveStatusFromJwtToken(String authToken) {
+        Token unActiveToken = tokenRepository.findByToken(authToken);
         unActiveToken.isActive();
         return unActiveToken.isActive();
     }
