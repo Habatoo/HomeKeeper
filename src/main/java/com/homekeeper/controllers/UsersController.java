@@ -6,7 +6,9 @@ import com.homekeeper.models.Token;
 import com.homekeeper.models.User;
 import com.homekeeper.payload.request.LoginRequest;
 import com.homekeeper.payload.request.SignupRequest;
+import com.homekeeper.payload.response.JwtResponse;
 import com.homekeeper.payload.response.MessageResponse;
+import com.homekeeper.payload.response.UserResponse;
 import com.homekeeper.repository.RoleRepository;
 import com.homekeeper.repository.TokenRepository;
 import com.homekeeper.repository.UserBalanceRepository;
@@ -82,8 +84,16 @@ public class UsersController {
     @GetMapping("/getUserInfo")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @ResponseBody
-    public User getUserInfo(HttpServletRequest request, Authentication authentication) {
-        return userRepository.findByUserName(authentication.getName()).get();
+    public ResponseEntity<?>  getUserInfo(Authentication authentication) {
+        User user = userRepository.findByUserName(authentication.getName()).get();
+        //return userRepository.findByUserName(authentication.getName()).get();
+        return ResponseEntity.ok(new UserResponse(
+                user.getUserName(),
+                user.getUserEmail(),
+                user.getCreationDate(),
+                user.getRoles(),
+                user.getBalances()
+        ));
     }
 
     /**

@@ -100,7 +100,7 @@ public class AuthController {
                 .atZone(ZoneId.systemDefault())
                 .toLocalDateTime();
         token.setCreationDate(createDate);
-        token.setExpiryDate (expireDate);
+        token.setExpiryDate(expireDate);
 
         token.setUser(userRepository.findByUserName(authentication.getName()).get());
         tokenRepository.save(token);
