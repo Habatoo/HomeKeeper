@@ -22,7 +22,6 @@ import java.time.LocalDateTime;
  * Реализваны методы addFundsToBalance, changeBalance, showBalance
  * @version 0.013
  * @author habatoo
- *
  */
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -47,7 +46,6 @@ public class UserBalanceController {
      * @return - при отсутствии username в базе - "User not found!"
      * @return - при успешной записи суммы в базу - "Balance added successfully!"
      */
-    // TODO добавить обновление данных баланса - суммирование с предыдущим значением
     @PostMapping("/addFundsToBalance")
     ResponseEntity<?> addFundsToBalance(
             @Valid @RequestBody UserBalanceRequest userBalanceRequest,
@@ -150,7 +148,7 @@ public class UserBalanceController {
         }
 
         try {
-        UserBalance userBalance = userBalanceRepository.findFirstByUserOrderByBalanceDateDesc(user).get();
+            UserBalance userBalance = userBalanceRepository.findFirstByUserOrderByBalanceDateDesc(user).get();
         return ResponseEntity.ok(new UserBalanceResponse(
                 userBalance.getId(),
                 userBalance.getBalanceDate(),

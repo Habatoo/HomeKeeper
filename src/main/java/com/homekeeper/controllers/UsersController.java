@@ -4,9 +4,7 @@ import com.homekeeper.models.ERoles;
 import com.homekeeper.models.Role;
 import com.homekeeper.models.Token;
 import com.homekeeper.models.User;
-import com.homekeeper.payload.request.LoginRequest;
 import com.homekeeper.payload.request.SignupRequest;
-import com.homekeeper.payload.response.JwtResponse;
 import com.homekeeper.payload.response.MessageResponse;
 import com.homekeeper.payload.response.UserResponse;
 import com.homekeeper.repository.RoleRepository;
@@ -18,7 +16,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -26,16 +23,12 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
 
 /**
  * Контроллер работы с пользователями. Реализваны методы userList, changeUser, deleteUser
- * TODO, getUserInfo.
  * @version 0.013
  * @author habatoo
- *
  */
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -46,12 +39,15 @@ public class UsersController {
 
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
+    private final UserBalanceRepository userBalanceRepository;
 
     @Autowired
     public UsersController(UserRepository userRepository,
-                           TokenRepository tokenRepository) {
+                           TokenRepository tokenRepository,
+                           UserBalanceRepository userBalanceRepository) {
         this.userRepository = userRepository;
         this.tokenRepository = tokenRepository;
+        this.userBalanceRepository = userBalanceRepository;
     }
 
     @Autowired
@@ -67,11 +63,24 @@ public class UsersController {
      * @see Role
      * @see com.homekeeper.models.UserBalance
      */
-    // TODO - less data, cut token information.
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public List<User> userList() {
-        return userRepository.findAll();
+    @ResponseBody
+    public ResponseEntity<?> userList() {
+        List<Object> usersReturn = new ArrayList<>();
+        List<User> usersCurrent = userRepository.findAll();
+        for(User user: usersCurrent) {
+            Map<String, Object> temp = new HashMap<String, Object>();
+            temp.put("balances", user.getBalances());
+            temp.put("roles", user.getRoles());
+            temp.put("creationDate", user.getCreationDate());
+            temp.put("userEmail", user.getUserEmail());
+            temp.put("userName", user.getUserName());
+            temp.put("id", user.getId());
+            usersReturn.add(temp);
+        }
+
+        return ResponseEntity.ok(usersReturn);
     }
 
     /**
@@ -86,7 +95,6 @@ public class UsersController {
     @ResponseBody
     public ResponseEntity<?>  getUserInfo(Authentication authentication) {
         User user = userRepository.findByUserName(authentication.getName()).get();
-        //return userRepository.findByUserName(authentication.getName()).get();
         return ResponseEntity.ok(new UserResponse(
                 user.getUserName(),
                 user.getUserEmail(),
