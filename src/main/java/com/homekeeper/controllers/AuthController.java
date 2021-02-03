@@ -25,7 +25,10 @@ import org.springframework.web.bind.annotation.*;
 
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
+import java.time.Instant;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 import java.util.stream.Collectors;
 
@@ -60,6 +63,9 @@ public class AuthController {
     @Value("${homekeeper.app.secretKey}")
     private String secretKey;
 
+    @Value("${homekeeper.app.jwtExpirationMs}")
+    private int jwtExpirationMs;
+
     /**
      * @method authenticateUser - при http post запросе по адресу .../api/auth/login
      * @param loginRequest - запрос на доступ с параметрами user login+password.
@@ -85,7 +91,17 @@ public class AuthController {
 
         Token token = new Token(jwt, userRepository.findByUserName(authentication.getName()).get());
         token.setActive(true);
-        token.setCreationDate(LocalDateTime.now());
+
+        Date date = new Date();
+        LocalDateTime createDate = Instant.ofEpochMilli(date.getTime())
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+        LocalDateTime expireDate = Instant.ofEpochMilli(date.getTime() + jwtExpirationMs)
+                .atZone(ZoneId.systemDefault())
+                .toLocalDateTime();
+        token.setCreationDate(createDate);
+        token.setExpiryDate(expireDate);
+
         token.setUser(userRepository.findByUserName(authentication.getName()).get());
         tokenRepository.save(token);
 
@@ -145,7 +161,6 @@ public class AuthController {
         User user = userRepository.findByUserName(passwordRequest.getUserName()).get();
         user.setPassword(encoder.encode(passwordRequest.getPassword()));
         userRepository.save(user);
-        System.out.println(user);
 
         return ResponseEntity.ok(new PasswordResponse(
                 passwordRequest.getUserName(),

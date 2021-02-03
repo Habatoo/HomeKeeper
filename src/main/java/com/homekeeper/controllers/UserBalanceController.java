@@ -1,14 +1,13 @@
 package com.homekeeper.controllers;
 
+import com.homekeeper.config.Money;
 import com.homekeeper.models.User;
 import com.homekeeper.models.UserBalance;
 import com.homekeeper.payload.request.UserBalanceRequest;
-import com.homekeeper.payload.response.JwtResponse;
 import com.homekeeper.payload.response.MessageResponse;
 import com.homekeeper.payload.response.UserBalanceResponse;
 import com.homekeeper.repository.UserBalanceRepository;
 import com.homekeeper.repository.UserRepository;
-import org.springframework.beans.BeanUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,7 +22,6 @@ import java.time.LocalDateTime;
  * Реализваны методы addFundsToBalance, changeBalance, showBalance
  * @version 0.013
  * @author habatoo
- *
  */
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -48,11 +46,18 @@ public class UserBalanceController {
      * @return - при отсутствии username в базе - "User not found!"
      * @return - при успешной записи суммы в базу - "Balance added successfully!"
      */
-    // TODO добавить обновление данных баланса - суммирование с предыдущим значением
     @PostMapping("/addFundsToBalance")
     ResponseEntity<?> addFundsToBalance(
             @Valid @RequestBody UserBalanceRequest userBalanceRequest,
             Authentication authentication) {
+
+        String userBalanceOldSum;
+
+        if(userBalanceRequest.equals(null)) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Error: Empty request!"));
+        }
 
         User user = userRepository.findByUserName(authentication.getName()).get();
         if (user.equals(null)) {
@@ -61,16 +66,26 @@ public class UserBalanceController {
                     .body(new MessageResponse("User not found!"));
         }
 
+        try {
+            UserBalance userBalanceOld = userBalanceRepository.findFirstByUserOrderByBalanceDateDesc(user).get();
+            userBalanceOldSum = userBalanceOld.getBalanceSumOfBalance();
+        } catch (Exception e) {
+            userBalanceOldSum = "0";
+        }
+
         // Create new balance data
+        Money userBalanceOldSumMoney = new Money(userBalanceOldSum);
         UserBalance userBalance = new UserBalance(
-                userBalanceRequest.getBalanceSumOfBalance()
+                userBalanceOldSumMoney.addMoney(userBalanceRequest.getBalanceSumOfBalance()).getValue().toString()
         );
 
         userBalance.setUser(user);
         userBalance.setBalanceDate(LocalDateTime.now());
+
         userBalanceRepository.save(userBalance);
 
-        return ResponseEntity.ok(new MessageResponse("Balance added successfully!"));
+        return ResponseEntity.ok(new MessageResponse("Balance added successfully!"
+        ));
     }
 
     /**
@@ -81,6 +96,7 @@ public class UserBalanceController {
      * @return - при пустом запросе - "Error: Empty request!"
      * @return - при отсутствии username в базе - "User not found!"
      * @return - при успешной записи суммы в базу - "Balance data change successful!"
+     * @return - при запросе в пучтую бд - "Database is empty!"
      */
     @PutMapping("/changeBalance")
     public ResponseEntity<?> changeBalance(@Valid @RequestBody UserBalanceRequest userBalanceRequest,
@@ -98,13 +114,19 @@ public class UserBalanceController {
                     .body(new MessageResponse("Username not found!"));
         }
 
-        UserBalance userBalance = userBalanceRepository.findFirstByUserOrderByBalanceDateDesc(user).get();
-        userBalance.setBalanceSumOfBalance(userBalanceRequest.getBalanceSumOfBalance());
-        userBalanceRepository.save(userBalance);
+        try {
+            UserBalance userBalance = userBalanceRepository.findFirstByUserOrderByBalanceDateDesc(user).get();
+            userBalance.setBalanceSumOfBalance(userBalanceRequest.getBalanceSumOfBalance());
+            userBalanceRepository.save(userBalance);
 
-        return ResponseEntity
-                .ok()
-                .body(new MessageResponse("Balance data change successful!"));
+            return ResponseEntity
+                    .ok()
+                    .body(new MessageResponse("Balance data change successful!"));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Database is empty!"));
+        }
     }
 
     /**
@@ -112,6 +134,7 @@ public class UserBalanceController {
      * @param authentication
      * @return - при отсутствии username в базе - "User not found!"
      * @return - при успешном запросе выдается json с данными по балансу с самой последней датой
+     * @return - при запросе в пучтую бд - "Database is empty!"
      */
     @GetMapping
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
@@ -124,13 +147,18 @@ public class UserBalanceController {
                     .body(new MessageResponse("Username not found!"));
         }
 
-        UserBalance userBalance = userBalanceRepository.findFirstByUserOrderByBalanceDateDesc(user).get();
-
+        try {
+            UserBalance userBalance = userBalanceRepository.findFirstByUserOrderByBalanceDateDesc(user).get();
         return ResponseEntity.ok(new UserBalanceResponse(
                 userBalance.getId(),
                 userBalance.getBalanceDate(),
                 userBalance.getBalanceSumOfBalance(),
                 user
         ));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Database is empty!"));
+        }
     }
 }
