@@ -4,39 +4,42 @@ import com.homekeeper.controllers.AuthController;
 import com.homekeeper.controllers.MainController;
 import com.homekeeper.controllers.UserBalanceController;
 import com.homekeeper.controllers.UsersController;
-import com.homekeeper.models.ERoles;
-import com.homekeeper.models.Role;
-
-import org.apache.catalina.User;
+import com.homekeeper.repository.TokenRepository;
+import com.homekeeper.repository.UserRepository;
+import com.homekeeper.security.jwt.JwtUtils;
+import com.homekeeper.security.jwt.TokenUtils;
 import org.hamcrest.Matchers;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.boot.test.web.client.TestRestTemplate;
-import org.springframework.boot.web.server.LocalServerPort;
-import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
 import org.springframework.test.web.servlet.MockMvc;
 
-import static com.homekeeper.TestUtil.getBasicAuthHeader;
 import static org.assertj.core.api.Assertions.assertThat;
-import static org.springframework.http.MediaType.APPLICATION_JSON;
-import static org.springframework.security.test.web.servlet.request.SecurityMockMvcRequestPostProcessors.user;
-
-import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
-import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.*;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
 @TestPropertySource("/application-test.properties")
+@Sql(value = {"/create-user-before.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Sql(value = {"/create-user-after.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 public class AuthModuleTests {
     @Autowired
     private MockMvc mockMvc;
@@ -52,6 +55,27 @@ public class AuthModuleTests {
 
     @Autowired
     MainController mainController;
+
+    @Autowired
+    AuthenticationManager authenticationManager;
+
+    @Autowired
+    JwtUtils jwtUtils;
+
+    @Autowired
+    TokenUtils tokenUtils;
+
+    @Autowired
+    TokenRepository tokenRepository;
+
+    @Autowired
+    UserRepository userRepository;
+
+    @Value("${homekeeper.app.jwtSecret}")
+    private String jwtSecret;
+
+    @Value("${homekeeper.app.jwtExpirationMs}")
+    private int jwtExpirationMs;
 
     @Test
     @DisplayName("Проверяет успешную подгрузку контроллеров из контекста.")
@@ -122,9 +146,19 @@ public class AuthModuleTests {
     @Test
     @DisplayName("Проверяет выход с токеном.")
     public void logoutTest() throws Exception {
-        String token = "eyJhbGciOiJIUzUxMiJ9.eyJzdWIiOiJ1c2VyIiwiaWF0IjoxNjEyNDUyNDg1LCJleHAiOjE2MTI2MjUyODV9.uNdSA8bMUtQVRuFWzg1j4CB0mVnM-GUogGv1WHYkiEIacznQ-QeIHCIqBtRDFnuDMRkWCF_shFAGpyIuoGX-TA";
+        String username = "user";
+        String password = "12345";
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(username,password));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String strToken = jwtUtils.generateJwtToken(authentication);
+
+        tokenUtils.makeToken(username, strToken);
+
         this.mockMvc.perform(get("/api/auth/logout")
-                .header("Authorization", "Bearer " + token))
+                .header("Authorization", "Bearer " + strToken))
                 .andDo(print())
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("message").value("You are logout."));

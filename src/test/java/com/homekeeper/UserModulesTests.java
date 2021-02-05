@@ -25,7 +25,7 @@ import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.
 @SpringBootTest
 @AutoConfigureMockMvc
 @WithUserDetails("admin")
-@TestPropertySource("/application.test.properties")
+@TestPropertySource("/application-test.properties")
 public class UserModulesTests {
     @Autowired
     private MockMvc mockMvc;

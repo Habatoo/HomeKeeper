@@ -89,6 +89,7 @@ public class AuthController {
                 .map(item -> item.getAuthority())
                 .collect(Collectors.toList());
 
+        // TODO send to TokenUtils
         Token token = new Token(jwt, userRepository.findByUserName(authentication.getName()).get());
         token.setActive(true);
 
