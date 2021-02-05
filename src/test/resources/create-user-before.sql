@@ -15,6 +15,9 @@ INSERT INTO users(id, user_name, user_email, password, creation_date) VALUES
 (1, 'admin', 'admin@admin.com', '$2a$10$EfVS7r4YFJVUKtoKtipoAuuj.e6z7ed/nEDNGrXB2z6M52d9zmtkW', current_date),
 (2, 'user', 'user@user.com', '$2a$10$7JGsM41kbXX7/vJ2lc3pb.wdoIoANWTme.NErCU2TSv1RcPnDaBaS', current_date);
 
+alter sequence users_id_seq restart with 10;
+
 INSERT INTO user_roles(user_id, role_id) VALUES
 (1, 1), (1, 2),
 (2, 2);
+

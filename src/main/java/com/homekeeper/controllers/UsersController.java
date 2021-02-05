@@ -117,9 +117,8 @@ public class UsersController {
      * метод доступен только для пользователей с ролью ADMIN
      */
     @PostMapping("/addUser")
-    //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest, HttpServletRequest request) {
-        if (!remoteAddr.equals(request.getRemoteAddr())) {
+        if (!(remoteAddr.equals(request.getRemoteAddr()) || "127.0.0.1".equals(request.getRemoteAddr()) | "localhost".equals(request.getRemoteAddr()))) {
             return ResponseEntity
                     .badRequest()
                     .body(new MessageResponse("Not support IP!"));

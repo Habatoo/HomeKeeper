@@ -1,31 +1,44 @@
 package com.homekeeper;
 
+import com.homekeeper.controllers.AuthController;
 import com.homekeeper.controllers.UsersController;
-
-import static org.assertj.core.api.Assertions.assertThat;
+import com.homekeeper.repository.TokenRepository;
+import com.homekeeper.repository.UserRepository;
+import com.homekeeper.security.jwt.JwtUtils;
+import com.homekeeper.security.jwt.TokenUtils;
+import org.hamcrest.Matchers;
 import org.junit.jupiter.api.DisplayName;
-import org.junit.jupiter.api.Test;
+import org.junit.Test;
 import org.junit.runner.RunWith;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
-import org.springframework.security.test.context.support.WithUserDetails;
+import org.springframework.http.MediaType;
+import org.springframework.security.authentication.AuthenticationManager;
+import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.TestPropertySource;
+import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
-
 import org.springframework.test.web.servlet.MockMvc;
 
-import static org.springframework.security.test.web.servlet.response.SecurityMockMvcResultMatchers.authenticated;
+import javax.servlet.http.HttpServletRequest;
+
+import static org.assertj.core.api.Assertions.assertThat;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
-import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
 @RunWith(SpringRunner.class)
 @SpringBootTest
 @AutoConfigureMockMvc
-@WithUserDetails("admin")
 @TestPropertySource("/application-test.properties")
+@Sql(value = {"/create-user-before.sql"}, executionPhase = Sql.ExecutionPhase.BEFORE_TEST_METHOD)
+@Sql(value = {"/create-user-after.sql"}, executionPhase = Sql.ExecutionPhase.AFTER_TEST_METHOD)
 public class UserModulesTests {
     @Autowired
     private MockMvc mockMvc;
@@ -33,81 +46,207 @@ public class UserModulesTests {
     @Autowired
     private UsersController usersController;
 
+    @Autowired
+    private AuthController authController;
+
+    @Autowired
+    HttpServletRequest request;
+
+    @Autowired
+    AuthenticationManager authenticationManager;
+
+    @Autowired
+    JwtUtils jwtUtils;
+
+    @Autowired
+    TokenUtils tokenUtils;
+
+    @Autowired
+    TokenRepository tokenRepository;
+
+    @Autowired
+    UserRepository userRepository;
+
+    @Value("${homekeeper.app.jwtSecret}")
+    private String jwtSecret;
+
+    @Value("${homekeeper.app.jwtExpirationMs}")
+    private int jwtExpirationMs;
+
     @Test
-    public void contextLoads() throws Exception {
+    @DisplayName("Проверяет успешную подгрузку контроллеров из контекста.")
+    public void loadControllers() {
         assertThat(usersController).isNotNull();
     }
 
     @Test
-    @DisplayName("Проверяет.")
-    void userPageData()  throws Exception {
-        // usersController.userList();
-        this.mockMvc.perform(get("/api/auth/users/"))
-                .andDo(print())
-                .andExpect(authenticated());
-        // System.out.println(usersController.userList());
-    }
+    @DisplayName("Проверяет создание пользователя с ролями ADMIN и USER.")
+    public void testCreateAdmin() throws Exception{
+        String username = "admin";
+        String password = "12345";
 
-    @Test
-    @DisplayName("Проверяет создание пользователя с ролью ADMIN.")
-    void testCreateAdmin() {
-        // usersController.userList();
-        System.out.println(usersController.userList());
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(username, password));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String strToken = jwtUtils.generateJwtToken(authentication);
+
+        tokenUtils.makeToken(username, strToken);
+
+        this.mockMvc.perform(post("/api/auth/users/addUser")
+                .header("Authorization", "Bearer " + strToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"userName\": \"mod\", \"email\": \"mod@mod.com\", \"password\": \"12345\", \"role\": [\"admin\", \"user\"] }"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value("User registered successfully!"));
     }
 
     @Test
     @DisplayName("Проверяет создание пользователя с ролью USER.")
-    void testCreateUser() {
+    public void testCreateUser() throws Exception{
+        String username = "admin";
+        String password = "12345";
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(username, password));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String strToken = jwtUtils.generateJwtToken(authentication);
+
+        tokenUtils.makeToken(username, strToken);
+
+        this.mockMvc.perform(post("/api/auth/users/addUser")
+                .header("Authorization", "Bearer " + strToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"userName\": \"guest\", \"email\": \"guest@guest.com\", \"password\": \"12345\", \"role\": [\"user\"] }"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value("User registered successfully!"));
     }
 
     @Test
-    @DisplayName("Проверяет создание пользователя с ролями ADMIN и USER.")
-    void testCreateAdminAndUser() {
+    @DisplayName("Проверяет создание пользователя с ролью ADMIN")
+    public void testCreateAdminAndUser() throws Exception{
+        String username = "admin";
+        String password = "12345";
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(username, password));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String strToken = jwtUtils.generateJwtToken(authentication);
+
+        tokenUtils.makeToken(username, strToken);
+
+        this.mockMvc.perform(post("/api/auth/users/addUser")
+                .header("Authorization", "Bearer " + strToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"userName\": \"admin2\", \"email\": \"admin2@admin2.com\", \"password\": \"12345\", \"role\": [\"admin\"] }"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value("User registered successfully!"));
+
     }
 
     @Test
     @DisplayName("Проверяет создание пользователя с существующим userName.")
-    void testCreateUsernameInDb() {
+    public void testCreateUsernameInDb() throws Exception{
+        String username = "admin";
+        String password = "12345";
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(username, password));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String strToken = jwtUtils.generateJwtToken(authentication);
+
+        tokenUtils.makeToken(username, strToken);
+
+        this.mockMvc.perform(post("/api/auth/users/addUser")
+                .header("Authorization", "Bearer " + strToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"userName\": \"admin\", \"email\": \"admin2@admin2.com\", \"password\": \"12345\", \"role\": [\"admin\"] }"))
+                .andDo(print())
+                .andExpect(status().is4xxClientError())
+                .andExpect(jsonPath("message").value("Error: Username is already taken!"));
+
     }
 
     @Test
     @DisplayName("Проверяет создание пользователя с существующим email.")
-    void testCreateEmailInDb() {
+    public void testCreateEmailInDb() throws Exception{
+        String username = "admin";
+        String password = "12345";
+
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(username, password));
+
+        SecurityContextHolder.getContext().setAuthentication(authentication);
+        String strToken = jwtUtils.generateJwtToken(authentication);
+
+        tokenUtils.makeToken(username, strToken);
+
+        this.mockMvc.perform(post("/api/auth/users/addUser")
+                .header("Authorization", "Bearer " + strToken)
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"userName\": \"admin2\", \"email\": \"admin@admin.com\", \"password\": \"12345\", \"role\": [\"admin\"] }"))
+                .andDo(print())
+                .andExpect(status().is4xxClientError())
+                .andExpect(jsonPath("message").value("Error: Email is already in use!"));
     }
 
-    @Test
-    @DisplayName("Проверяет создание пользователя с не существующей ролью.")
-    void testCreateRoleNotInDb() {
-    }
+//    @Test
+//    @DisplayName("Проверяет создание пользователя с не существующей ролью.")
+//    public void testCreateRoleNotInDb() throws Exception{
+//        String username = "admin";
+//        String password = "12345";
+//
+//        Authentication authentication = authenticationManager.authenticate(
+//                new UsernamePasswordAuthenticationToken(username, password));
+//
+//        SecurityContextHolder.getContext().setAuthentication(authentication);
+//        String strToken = jwtUtils.generateJwtToken(authentication);
+//
+//        tokenUtils.makeToken(username, strToken);
+//
+//        this.mockMvc.perform(post("/api/auth/users/addUser")
+//                .header("Authorization", "Bearer " + strToken)
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .content("{ \"userName\": \"admin2\", \"email\": \"admin2@admin2.com\", \"password\": \"12345\", \"role\": [\"admin\"] }"))
+//                .andDo(print())
+//                .andExpect(status().isOk())
+//                .andExpect(jsonPath("message").value("Error: Role is not found."));
+//    }
 
-    @Test
-    @DisplayName("Проверяет изменение данных пользователя ADMIN.")
-    void testChangeAdminData() {
-    }
-
-    @Test
-    @DisplayName("Проверяет изменение данных пользователя USER.")
-    void testChangeUserData() {
-    }
-
-    @Test
-    @DisplayName("Проверяет удаление данных пользователя ADMIN.")
-    void testDeleteAdminData() {
-    }
-
-    @Test
-    @DisplayName("Проверяет удаление данных пользователя USER.")
-    void testDeleteUserData() {
-    }
-
-    @Test
-    @DisplayName("Проверяет отображение списка всех пользователей.")
-    void testShowAllUsers() {
-    }
-
-    @Test
-    @DisplayName("Проверяет отображение информации о текущем пользователе.")
-    void testShowCurrentUserInfo() {
-        // getUserInfo
-    }
+//    @Test
+//    @DisplayName("Проверяет изменение данных пользователя ADMIN.")
+//    public void testChangeAdminData() {
+//    }
+//
+//    @Test
+//    @DisplayName("Проверяет изменение данных пользователя USER.")
+//    public void testChangeUserData() {
+//    }
+//
+//    @Test
+//    @DisplayName("Проверяет удаление данных пользователя ADMIN.")
+//    public void testDeleteAdminData() {
+//    }
+//
+//    @Test
+//    @DisplayName("Проверяет удаление данных пользователя USER.")
+//    public void testDeleteUserData() {
+//    }
+//
+//    @Test
+//    @DisplayName("Проверяет отображение списка всех пользователей.")
+//    public void testShowAllUsers() {
+//    }
+//
+//    @Test
+//    @DisplayName("Проверяет отображение информации о текущем пользователе.")
+//    public void testShowCurrentUserInfo() {
+//        // getUserInfo
+//    }
 }
