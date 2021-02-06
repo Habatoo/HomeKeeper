@@ -47,7 +47,7 @@ public class AuthModuleTests {
     @Value("${homekeeper.app.jwtExpirationMs}")
     private int jwtExpirationMs;
 
-    String username = "user";
+    String username = "admin";
     String password = "12345";
 
     @Test

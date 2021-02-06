@@ -27,9 +27,13 @@ import org.springframework.test.web.servlet.MockMvc;
 
 import javax.servlet.http.HttpServletRequest;
 
+import java.util.Set;
+
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.assertj.core.api.InstanceOfAssertFactories.DATE;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
 import static org.springframework.test.web.servlet.result.MockMvcResultHandlers.print;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
@@ -74,7 +78,7 @@ public class UserModulesTests {
     @Value("${homekeeper.app.jwtExpirationMs}")
     private int jwtExpirationMs;
 
-    String username = "user";
+    String username = "admin";
     String password = "12345";
 
     @Test
@@ -93,7 +97,6 @@ public class UserModulesTests {
                 .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ \"userName\": \"mod\", \"email\": \"mod@mod.com\", \"password\": \"12345\", \"role\": [\"admin\", \"user\"] }"))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("message").value("User registered successfully!"));
     }
@@ -108,7 +111,6 @@ public class UserModulesTests {
                 .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ \"userName\": \"guest\", \"email\": \"guest@guest.com\", \"password\": \"12345\", \"role\": [\"user\"] }"))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("message").value("User registered successfully!"));
     }
@@ -123,7 +125,6 @@ public class UserModulesTests {
                 .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ \"userName\": \"admin2\", \"email\": \"admin2@admin2.com\", \"password\": \"12345\", \"role\": [\"admin\"] }"))
-                .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("message").value("User registered successfully!"));
     }
@@ -138,7 +139,6 @@ public class UserModulesTests {
                 .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ \"userName\": \"admin\", \"email\": \"admin2@admin2.com\", \"password\": \"12345\", \"role\": [\"admin\"] }"))
-                .andDo(print())
                 .andExpect(status().is4xxClientError())
                 .andExpect(jsonPath("message").value("Error: Username is already taken!"));
     }
@@ -153,44 +153,103 @@ public class UserModulesTests {
                 .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ \"userName\": \"admin2\", \"email\": \"admin@admin.com\", \"password\": \"12345\", \"role\": [\"admin\"] }"))
-                .andDo(print())
                 .andExpect(status().is4xxClientError())
                 .andExpect(jsonPath("message").value("Error: Email is already in use!"));
     }
 
+    @Test
+    @DisplayName("Проверяет создание пользователя с не существующей ролью.")
+    public void testCreateRoleNotInDb() throws Exception{
+        JwtResponse jwtResponse = tokenUtils.makeAuth(username, password);
+        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
+
+        this.mockMvc.perform(post("/api/auth/users/addUser")
+                .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"userName\": \"cat\", \"email\": \"cat@cat.com\", \"password\": \"12345\", \"role\": [\"cat\"] }"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value("User registered successfully!"));
+    }
+
+    @Test
+    @DisplayName("Проверяет создание пользователя автором без роли ADMIN")
+    public void testFailCreateUserWithoutAdminRole() throws Exception{
+        JwtResponse jwtResponse = tokenUtils.makeAuth("user", password);
+        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
+
+        this.mockMvc.perform(post("/api/auth/users/addUser")
+                .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"userName\": \"admin2\", \"email\": \"admin2@admin2.com\", \"password\": \"12345\", \"role\": [\"admin\"] }"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value("User registered successfully!"));
+    }
+
 //    @Test
-//    @DisplayName("Проверяет создание пользователя с не существующей ролью.")
-//    public void testCreateRoleNotInDb() throws Exception{
-//        String username = "admin";
-//        String password = "12345";
+//    @DisplayName("Проверяет изменение своих данных пользователем с правами ADMIN.")
+//    public void testChangeMyAdminData() throws Exception{
+//        String id = "1";
+//        JwtResponse jwtResponse = tokenUtils.makeAuth(username, password);
+//        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
 //
-//        Authentication authentication = authenticationManager.authenticate(
-//                new UsernamePasswordAuthenticationToken(username, password));
-//
-//        SecurityContextHolder.getContext().setAuthentication(authentication);
-//        String strToken = jwtUtils.generateJwtToken(authentication);
-//
-//        tokenUtils.makeToken(username, strToken);
-//
-//        this.mockMvc.perform(post("/api/auth/users/addUser")
-//                .header("Authorization", "Bearer " + strToken)
+//        this.mockMvc.perform(put("/api/auth/users/" + id)
+//                .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
 //                .contentType(MediaType.APPLICATION_JSON)
-//                .content("{ \"userName\": \"admin2\", \"email\": \"admin2@admin2.com\", \"password\": \"12345\", \"role\": [\"admin\"] }"))
+//                .content("{ \"userName\": \"admin2\", \"userEmail\": \"admin2@admin2.com\", \"password\": \"12345\"] }"))
 //                .andDo(print())
 //                .andExpect(status().isOk())
-//                .andExpect(jsonPath("message").value("Error: Role is not found."));
+//                .andExpect(jsonPath("message").value("User data was update successfully!"));
 //    }
 
 //    @Test
-//    @DisplayName("Проверяет изменение данных пользователя ADMIN.")
-//    public void testChangeAdminData() {
-//    }
+//    @DisplayName("Проверяет изменение не своих данных пользователем с правами ADMIN.")
+//    public void testChangeUserData() throws Exception{
+//        String id = "2";
+//        JwtResponse jwtResponse = tokenUtils.makeAuth(username, password);
+//        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
 //
+//        this.mockMvc.perform(put("/api/auth/users/" + id)
+//                .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .content("{ \"userName\": \"user2\", \"userEmail\": \"user2@user2.com\", \"password\": \"12345\"] }"))
+//                .andDo(print())
+//                .andExpect(status().is4xxClientError())
+//                .andExpect(jsonPath("message").value("User data was update successfully!"));
+//    }
+
 //    @Test
-//    @DisplayName("Проверяет изменение данных пользователя USER.")
-//    public void testChangeUserData() {
-//    }
+//    @DisplayName("Проверяет изменение своих данных пользователем с правами USER.")
+//    public void testChangeMyUserData() throws Exception{
+//        String id = "2";
+//        JwtResponse jwtResponse = tokenUtils.makeAuth("user", password);
+//        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
 //
+//        this.mockMvc.perform(put("/api/auth/users/" + id)
+//                .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .content("{ \"userName\": \"user2\", \"userEmail\": \"user2@user2.com\", \"password\": \"12345\"] }"))
+//                .andDo(print())
+//                .andExpect(status().is4xxClientError())
+//                .andExpect(jsonPath("message").value("User data was update successfully!"));
+//    }
+
+//    @Test
+//    @DisplayName("Проверяет изменение не своих данных пользователем с правами USER.")
+//    public void testChangeNotMyUserData() throws Exception{
+//        String id = "1";
+//        JwtResponse jwtResponse = tokenUtils.makeAuth("user", password);
+//        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
+//
+//        this.mockMvc.perform(put("/api/auth/users/" + id)
+//                .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
+//                .contentType(MediaType.APPLICATION_JSON)
+//                .content("{ \"userName\": \"admin2\", \"userEmail\": \"admin2@admin2.com\", \"password\": \"12345\"] }"))
+//                .andDo(print())
+//                .andExpect(status().is4xxClientError())
+//                .andExpect(jsonPath("message").value("You can edit only yourself data."));
+//    }
+
 //    @Test
 //    @DisplayName("Проверяет удаление данных пользователя ADMIN.")
 //    public void testDeleteAdminData() {
@@ -203,12 +262,35 @@ public class UserModulesTests {
 //
 //    @Test
 //    @DisplayName("Проверяет отображение списка всех пользователей.")
-//    public void testShowAllUsers() {
-//    }
+//    public void testShowAllUsers() throws Exception{
+//        JwtResponse jwtResponse = tokenUtils.makeAuth(username, password);
+//        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
 //
-//    @Test
-//    @DisplayName("Проверяет отображение информации о текущем пользователе.")
-//    public void testShowCurrentUserInfo() {
-//        // getUserInfo
+//        this.mockMvc.perform(get("/api/auth/users/")
+//                .header("Authorization", "Bearer " + jwtResponse.getAccessToken()))
+//                //.contentType(MediaType.APPLICATION_JSON)
+//                //.content("{ \"userName\": \"admin2\", \"userEmail\": \"admin2@admin2.com\", \"password\": \"12345\"] }"))
+//                .andDo(print())
+//                .andExpect(status().isOk())
+//                .andExpect((jsonPath (Matchers. empty())));
+//        // [{"balances":[],"roles":[{"id":1,"roleName":"ROLE_ADMIN"},{"id":2,"roleName":"ROLE_USER"}],"userEmail":"admin@admin.com","id":1,"creationDate":"2021-02-06T00:00:00","userName":"admin"},{"balances":[],"roles":[{"id":2,"roleName":"ROLE_USER"}],"userEmail":"user@user.com","id":2,"creationDate":"2021-02-06T00:00:00","userName":"user"}]
 //    }
+
+    @Test
+    @DisplayName("Проверяет отображение информации о текущем пользователе.")
+    public void testShowCurrentUserInfo() throws Exception{
+        JwtResponse jwtResponse = tokenUtils.makeAuth(username, password);
+        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
+
+        this.mockMvc.perform(get("/api/auth/users/getUserInfo")
+                .header("Authorization", "Bearer " + jwtResponse.getAccessToken()))
+                //.contentType(MediaType.APPLICATION_JSON)
+                //.content("{ \"userName\": \"admin2\", \"userEmail\": \"admin2@admin2.com\", \"password\": \"12345\"] }"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("userName").value("admin"))
+                .andExpect(jsonPath("userEmail").value("admin@admin.com"))
+                .andExpect((jsonPath("balances", Matchers.empty())));
+                //.andExpect((jsonPath("roles", Matchers.containsInAnyOrder("ROLE_ADMIN","ROLE_USER"))));
+    }
 }

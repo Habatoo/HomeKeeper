@@ -6,6 +6,7 @@ import com.homekeeper.models.Token;
 import com.homekeeper.models.User;
 import com.homekeeper.payload.request.SignupRequest;
 import com.homekeeper.payload.response.MessageResponse;
+import com.homekeeper.payload.response.PasswordResponse;
 import com.homekeeper.payload.response.UserResponse;
 import com.homekeeper.repository.RoleRepository;
 import com.homekeeper.repository.TokenRepository;
@@ -24,6 +25,8 @@ import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
 import java.util.*;
+
+import static com.homekeeper.models.ERoles.ROLE_USER;
 
 /**
  * Контроллер работы с пользователями. Реализваны методы userList, changeUser, deleteUser
@@ -149,7 +152,7 @@ public class UsersController {
         Set<Role> roles = new HashSet<>();
 
         if (strRoles == null) {
-            Role userRole = roleRepository.findByRoleName(ERoles.ROLE_USER)
+            Role userRole = roleRepository.findByRoleName(ROLE_USER)
                     .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
             roles.add(userRole);
         } else {
@@ -161,7 +164,7 @@ public class UsersController {
                         roles.add(adminRole);
                         break;
                     default:
-                        Role userRole = roleRepository.findByRoleName(ERoles.ROLE_USER)
+                        Role userRole = roleRepository.findByRoleName(ROLE_USER)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(userRole);
                 }
@@ -186,13 +189,49 @@ public class UsersController {
      */
     @PutMapping("{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public User changeUser(
+    public ResponseEntity<?> changeUser(
             @PathVariable("id") User userFromDb,
-            @RequestBody User user
+            @RequestBody User user,
+            Authentication authentication
     ) {
-        BeanUtils.copyProperties(user, userFromDb, "id");
+        userFromDb = userRepository.findById(userFromDb.getId()).get();
 
-        return userRepository.save(userFromDb);
+        if (!(user.getUserName().equals(userFromDb.getUserName())) & (userRepository.existsByUserName(user.getUserName()))) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Error: Username is already taken!"));
+        }
+
+        if (!(user.getUserEmail().equals(userFromDb.getUserEmail())) & (userRepository.existsByUserEmail(user.getUserEmail()))) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Error: Email is already in use!"));
+        }
+
+        // check ID current user = ID edit user
+        if(!(userFromDb.getId() == userRepository.findByUserName(authentication.getName()).get().getId())) {
+            // admin check
+            if(userRepository.findByUserName(authentication.getName()).get().getRoles().size() == 2) {
+                //BeanUtils.copyProperties(user, userRepository.findById(userFromDb.getId()).get(), "id");
+                userFromDb.setUserName(user.getUserName());
+                userFromDb.setUserEmail(user.getUserEmail());
+                userFromDb.setPassword(user.getPassword());
+
+            }
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("You can edit only yourself data."));
+        } else {
+            //BeanUtils.copyProperties(user, userRepository.findById(userFromDb.getId()).get(), "id");
+            userFromDb.setUserName(user.getUserName());
+            userFromDb.setUserEmail(user.getUserEmail());
+            userFromDb.setPassword(encoder.encode(user.getPassword()));
+        }
+
+        userRepository.save(userFromDb);
+
+        return ResponseEntity.ok(new MessageResponse("User data was update successfully!"));
+
     }
 
     /**
