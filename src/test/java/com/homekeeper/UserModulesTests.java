@@ -2,6 +2,7 @@ package com.homekeeper;
 
 import com.homekeeper.controllers.AuthController;
 import com.homekeeper.controllers.UsersController;
+import com.homekeeper.payload.response.JwtResponse;
 import com.homekeeper.repository.TokenRepository;
 import com.homekeeper.repository.UserRepository;
 import com.homekeeper.security.jwt.JwtUtils;
@@ -73,6 +74,9 @@ public class UserModulesTests {
     @Value("${homekeeper.app.jwtExpirationMs}")
     private int jwtExpirationMs;
 
+    String username = "user";
+    String password = "12345";
+
     @Test
     @DisplayName("Проверяет успешную подгрузку контроллеров из контекста.")
     public void loadControllers() {
@@ -82,19 +86,11 @@ public class UserModulesTests {
     @Test
     @DisplayName("Проверяет создание пользователя с ролями ADMIN и USER.")
     public void testCreateAdmin() throws Exception{
-        String username = "admin";
-        String password = "12345";
-
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password));
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String strToken = jwtUtils.generateJwtToken(authentication);
-
-        tokenUtils.makeToken(username, strToken);
+        JwtResponse jwtResponse = tokenUtils.makeAuth(username, password);
+        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
 
         this.mockMvc.perform(post("/api/auth/users/addUser")
-                .header("Authorization", "Bearer " + strToken)
+                .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ \"userName\": \"mod\", \"email\": \"mod@mod.com\", \"password\": \"12345\", \"role\": [\"admin\", \"user\"] }"))
                 .andDo(print())
@@ -105,19 +101,11 @@ public class UserModulesTests {
     @Test
     @DisplayName("Проверяет создание пользователя с ролью USER.")
     public void testCreateUser() throws Exception{
-        String username = "admin";
-        String password = "12345";
-
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password));
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String strToken = jwtUtils.generateJwtToken(authentication);
-
-        tokenUtils.makeToken(username, strToken);
+        JwtResponse jwtResponse = tokenUtils.makeAuth(username, password);
+        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
 
         this.mockMvc.perform(post("/api/auth/users/addUser")
-                .header("Authorization", "Bearer " + strToken)
+                .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ \"userName\": \"guest\", \"email\": \"guest@guest.com\", \"password\": \"12345\", \"role\": [\"user\"] }"))
                 .andDo(print())
@@ -128,67 +116,41 @@ public class UserModulesTests {
     @Test
     @DisplayName("Проверяет создание пользователя с ролью ADMIN")
     public void testCreateAdminAndUser() throws Exception{
-        String username = "admin";
-        String password = "12345";
-
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password));
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String strToken = jwtUtils.generateJwtToken(authentication);
-
-        tokenUtils.makeToken(username, strToken);
+        JwtResponse jwtResponse = tokenUtils.makeAuth(username, password);
+        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
 
         this.mockMvc.perform(post("/api/auth/users/addUser")
-                .header("Authorization", "Bearer " + strToken)
+                .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ \"userName\": \"admin2\", \"email\": \"admin2@admin2.com\", \"password\": \"12345\", \"role\": [\"admin\"] }"))
                 .andDo(print())
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("message").value("User registered successfully!"));
-
     }
 
     @Test
     @DisplayName("Проверяет создание пользователя с существующим userName.")
     public void testCreateUsernameInDb() throws Exception{
-        String username = "admin";
-        String password = "12345";
-
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password));
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String strToken = jwtUtils.generateJwtToken(authentication);
-
-        tokenUtils.makeToken(username, strToken);
+        JwtResponse jwtResponse = tokenUtils.makeAuth(username, password);
+        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
 
         this.mockMvc.perform(post("/api/auth/users/addUser")
-                .header("Authorization", "Bearer " + strToken)
+                .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ \"userName\": \"admin\", \"email\": \"admin2@admin2.com\", \"password\": \"12345\", \"role\": [\"admin\"] }"))
                 .andDo(print())
                 .andExpect(status().is4xxClientError())
                 .andExpect(jsonPath("message").value("Error: Username is already taken!"));
-
     }
 
     @Test
     @DisplayName("Проверяет создание пользователя с существующим email.")
     public void testCreateEmailInDb() throws Exception{
-        String username = "admin";
-        String password = "12345";
-
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username, password));
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String strToken = jwtUtils.generateJwtToken(authentication);
-
-        tokenUtils.makeToken(username, strToken);
+        JwtResponse jwtResponse = tokenUtils.makeAuth(username, password);
+        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
 
         this.mockMvc.perform(post("/api/auth/users/addUser")
-                .header("Authorization", "Bearer " + strToken)
+                .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ \"userName\": \"admin2\", \"email\": \"admin@admin.com\", \"password\": \"12345\", \"role\": [\"admin\"] }"))
                 .andDo(print())

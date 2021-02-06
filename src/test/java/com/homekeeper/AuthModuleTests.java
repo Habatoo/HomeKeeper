@@ -1,12 +1,7 @@
 package com.homekeeper;
 
 import com.homekeeper.controllers.AuthController;
-import com.homekeeper.controllers.MainController;
-import com.homekeeper.controllers.UserBalanceController;
-import com.homekeeper.controllers.UsersController;
-import com.homekeeper.repository.TokenRepository;
-import com.homekeeper.repository.UserRepository;
-import com.homekeeper.security.jwt.JwtUtils;
+import com.homekeeper.payload.response.JwtResponse;
 import com.homekeeper.security.jwt.TokenUtils;
 import org.hamcrest.Matchers;
 import org.junit.Test;
@@ -17,10 +12,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
 import org.springframework.boot.test.context.SpringBootTest;
 import org.springframework.http.MediaType;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.test.context.TestPropertySource;
 import org.springframework.test.context.jdbc.Sql;
 import org.springframework.test.context.junit4.SpringRunner;
@@ -48,28 +39,7 @@ public class AuthModuleTests {
     private AuthController authController;
 
     @Autowired
-    UsersController usersController;
-
-    @Autowired
-    UserBalanceController userBalanceController;
-
-    @Autowired
-    MainController mainController;
-
-    @Autowired
-    AuthenticationManager authenticationManager;
-
-    @Autowired
-    JwtUtils jwtUtils;
-
-    @Autowired
     TokenUtils tokenUtils;
-
-    @Autowired
-    TokenRepository tokenRepository;
-
-    @Autowired
-    UserRepository userRepository;
 
     @Value("${homekeeper.app.jwtSecret}")
     private String jwtSecret;
@@ -77,13 +47,13 @@ public class AuthModuleTests {
     @Value("${homekeeper.app.jwtExpirationMs}")
     private int jwtExpirationMs;
 
+    String username = "user";
+    String password = "12345";
+
     @Test
-    @DisplayName("Проверяет успешную подгрузку контроллеров из контекста.")
+    @DisplayName("Проверяет успешную подгрузку контроллера из контекста.")
     public void loadControllers() {
         assertThat(authController).isNotNull();
-        assertThat(usersController).isNotNull();
-        assertThat(userBalanceController).isNotNull();
-        assertThat(mainController).isNotNull();
     }
 
     @Test
@@ -128,9 +98,7 @@ public class AuthModuleTests {
     public void logoutFailTest() throws Exception {
         this.mockMvc.perform(get("/api/auth/logout")
                 .contentType(MediaType.APPLICATION_JSON)
-                //.content("{ \"userName\": \"admin\", \"password\": \"12345\" }"))
                 .content("{ \"token\": \"\" }"))
-                .andDo(print())
                 .andExpect(status().isUnauthorized())
                 .andExpect(jsonPath("path").value(""))
                 .andExpect(jsonPath("error").value("Unauthorized"))
@@ -146,22 +114,59 @@ public class AuthModuleTests {
     @Test
     @DisplayName("Проверяет выход с токеном.")
     public void logoutTest() throws Exception {
-        String username = "user";
-        String password = "12345";
-
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(username,password));
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-        String strToken = jwtUtils.generateJwtToken(authentication);
-
-        tokenUtils.makeToken(username, strToken);
+        JwtResponse jwtResponse = tokenUtils.makeAuth(username, password);
+        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
 
         this.mockMvc.perform(get("/api/auth/logout")
-                .header("Authorization", "Bearer " + strToken))
-                .andDo(print())
+                .header("Authorization", "Bearer " + jwtResponse.getAccessToken()))
                 .andExpect(status().is(400))
                 .andExpect(jsonPath("message").value("You are logout."));
+    }
+
+    /**
+     * Проверка метода reset, для корректной проверки требует seсretKey
+     * @throws Exception
+     */
+    @Test
+    @DisplayName("Проверяет сброс пароля с использованием seсretKey.")
+    public void resetTest() throws Exception {
+        this.mockMvc.perform(post("/api/auth/reset")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"userName\": \"admin\", \"secretKey\": \"1234567890\", \"password\": \"12346\" }"))
+                .andDo(print())
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("userName").value("admin"))
+                .andExpect(jsonPath("password").value("12346"));
+    }
+
+    /**
+     * Проверка метода reset, для корректной проверки требует seсretKey
+     * @throws Exception
+     */
+    @Test
+    @DisplayName("Проверяет сброс пароля с использованием seсretKey, для не существующего пользователя.")
+    public void resetNoUserTest() throws Exception {
+        this.mockMvc.perform(post("/api/auth/reset")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"userName\": \"bob\", \"secretKey\": \"1234567890\", \"password\": \"12346\" }"))
+                .andDo(print())
+                .andExpect(status().is4xxClientError())
+                .andExpect(jsonPath("message").value("Error: Username does not exist!"));
+    }
+
+    /**
+     * Проверка метода reset, для корректной проверки требует seсretKey
+     * @throws Exception
+     */
+    @Test
+    @DisplayName("Проверяет сброс пароля с использованием некорректного seсretKey, для существующего пользователя.")
+    public void resetWrongSecretKeyTest() throws Exception {
+        this.mockMvc.perform(post("/api/auth/reset")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"userName\": \"admin\", \"secretKey\": \"123456789\", \"password\": \"12345\" }"))
+                .andDo(print())
+                .andExpect(status().is4xxClientError())
+                .andExpect(jsonPath("message").value("Error: SecretKey does not valid!"));
     }
 
 }
