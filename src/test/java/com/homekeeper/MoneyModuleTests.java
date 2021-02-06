@@ -37,7 +37,7 @@ public class MoneyModuleTests {
     }
 
     @Test
-    @DisplayName("Проверяет данные - введены только числа, разделитель точка")
+    @DisplayName("Проверяет данные - введены только числа, разделитель точка, значение больше нуля")
     void shouldThrowIllegalMoneyFormatException() throws IllegalMoneyFormatException{
         // RUB test
         Currency currencyRUB = Currency.getInstance("RUB");
@@ -55,6 +55,14 @@ public class MoneyModuleTests {
                 IllegalMoneyFormatException.class,
                 () -> new Money(strValueRUBComma),
                 "Данные содержат не числовые значения, \n либо разделитель чисел не точка!"
+        );
+        assertTrue(thrownRUBComma.getMessage().contains("Данные "));
+        // Отрицательное значение
+        String strValueRUBNeg = "-35.50";
+        IllegalMoneyFormatException thrownRUBNeg = assertThrows(
+                IllegalMoneyFormatException.class,
+                () -> new Money(strValueRUBComma),
+                "Данные содержат отрицательные значения."
         );
         assertTrue(thrownRUBComma.getMessage().contains("Данные "));
 
