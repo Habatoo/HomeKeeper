@@ -6,10 +6,12 @@ import com.homekeeper.controllers.UsersController;
 import com.homekeeper.models.UserBalance;
 import com.homekeeper.payload.response.JwtResponse;
 import com.homekeeper.repository.TokenRepository;
+import com.homekeeper.repository.UserBalanceRepository;
 import com.homekeeper.repository.UserRepository;
 import com.homekeeper.security.jwt.JwtUtils;
 import com.homekeeper.security.jwt.TokenUtils;
 import org.hamcrest.Matchers;
+import org.junit.Assert;
 import org.junit.Test;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.runner.RunWith;
@@ -67,6 +69,9 @@ public class UserBalanceModuleTest {
 
     @Autowired
     UserRepository userRepository;
+
+    @Autowired
+    UserBalanceRepository userBalanceRepository;
 
     @Value("${homekeeper.app.jwtSecret}")
     private String jwtSecret;
@@ -151,6 +156,40 @@ public class UserBalanceModuleTest {
                 .header("Authorization", "Bearer " + jwtResponse.getAccessToken()))
                 .andExpect(status().is(200))
                 .andExpect(jsonPath("balanceSumOfBalance").value("199.99"));
+
+    }
+
+    @Test
+    @DisplayName("Отображает список пополнений баланса от пользователя.")
+    public void testDeleteBalance() throws Exception{
+        JwtResponse jwtResponse = tokenUtils.makeAuth(username, password);
+        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
+
+        Assert.assertEquals(2, userRepository.findAll().size());
+        Assert.assertEquals(0, userBalanceRepository.findAll().size());
+
+        this.mockMvc.perform(get("/api/auth/balances")
+                .header("Authorization", "Bearer " + jwtResponse.getAccessToken()))
+                .andExpect(status().is(400))
+                .andExpect(jsonPath("message").value("Database is empty!"));
+
+        this.mockMvc.perform(post("/api/auth/balances/addFundsToBalance")
+                .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"balanceSumOfBalance\": \"199.99\" }"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value("Balance added successfully!"));
+
+        this.mockMvc.perform(get("/api/auth/balances")
+                .header("Authorization", "Bearer " + jwtResponse.getAccessToken()))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("balanceSumOfBalance").value("199.99"));
+
+        Assert.assertEquals(2, userRepository.findAll().size());
+        Assert.assertEquals(1, userBalanceRepository.findAll().size());
+        userBalanceRepository.deleteAll();
+        Assert.assertEquals(2, userRepository.findAll().size());
+        Assert.assertEquals(0, userBalanceRepository.findAll().size());
 
     }
 }

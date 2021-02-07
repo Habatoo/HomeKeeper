@@ -16,4 +16,5 @@ public interface TokenRepository extends JpaRepository<Token, Long> {
     List<Token> findByExpiryDateAfter(LocalDateTime localDateTime);
     List<Token> findByExpiryDateBefore(LocalDateTime localDateTime);
     Boolean existsByToken(String token);
+
 }

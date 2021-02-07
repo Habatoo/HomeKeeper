@@ -6,13 +6,12 @@ import com.homekeeper.models.Token;
 import com.homekeeper.models.User;
 import com.homekeeper.payload.request.SignupRequest;
 import com.homekeeper.payload.response.MessageResponse;
-import com.homekeeper.payload.response.PasswordResponse;
 import com.homekeeper.payload.response.UserResponse;
 import com.homekeeper.repository.RoleRepository;
 import com.homekeeper.repository.TokenRepository;
 import com.homekeeper.repository.UserBalanceRepository;
 import com.homekeeper.repository.UserRepository;
-import org.springframework.beans.BeanUtils;
+import com.homekeeper.security.jwt.UserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -58,6 +57,9 @@ public class UsersController {
 
     @Autowired
     PasswordEncoder encoder;
+
+    @Autowired
+    UserUtils userUtils;
 
     /**
      * @method userList - при http GET запросе по адресу .../api/auth/users
@@ -192,45 +194,23 @@ public class UsersController {
     public ResponseEntity<?> changeUser(
             @PathVariable("id") User userFromDb,
             @RequestBody User user,
-            Authentication authentication
-    ) {
+            Authentication authentication) {
+
         userFromDb = userRepository.findById(userFromDb.getId()).get();
-
-        if (!(user.getUserName().equals(userFromDb.getUserName())) & (userRepository.existsByUserName(user.getUserName()))) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Error: Username is already taken!"));
-        }
-
-        if (!(user.getUserEmail().equals(userFromDb.getUserEmail())) & (userRepository.existsByUserEmail(user.getUserEmail()))) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Error: Email is already in use!"));
-        }
-
         // check ID current user = ID edit user
         if(!(userFromDb.getId() == userRepository.findByUserName(authentication.getName()).get().getId())) {
             // admin check
             if(userRepository.findByUserName(authentication.getName()).get().getRoles().size() == 2) {
                 //BeanUtils.copyProperties(user, userRepository.findById(userFromDb.getId()).get(), "id");
-                userFromDb.setUserName(user.getUserName());
-                userFromDb.setUserEmail(user.getUserEmail());
-                userFromDb.setPassword(user.getPassword());
-
-            }
+                return userUtils.checkUserNameAndEmail(user, userFromDb);
+                }
             return ResponseEntity
                     .badRequest()
                     .body(new MessageResponse("You can edit only yourself data."));
         } else {
             //BeanUtils.copyProperties(user, userRepository.findById(userFromDb.getId()).get(), "id");
-            userFromDb.setUserName(user.getUserName());
-            userFromDb.setUserEmail(user.getUserEmail());
-            userFromDb.setPassword(encoder.encode(user.getPassword()));
+            return userUtils.checkUserNameAndEmail(user, userFromDb);
         }
-
-        userRepository.save(userFromDb);
-
-        return ResponseEntity.ok(new MessageResponse("User data was update successfully!"));
 
     }
 
@@ -242,28 +222,41 @@ public class UsersController {
      */
     @DeleteMapping("{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public void deleteUser(@PathVariable("id") User user) {
-        userRepository.delete(user);
+    public ResponseEntity<?>  deleteUser(@PathVariable("id") User user) {
+        try {
+            userRepository.delete(user);
+            return ResponseEntity.ok(new MessageResponse("User was deleted successfully!"));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Error: User was not deleted!"));
+        }
     }
 
     /**
-     * @method clearTokens - при http GET запросе по адресу .../api/auth/users/token - очищает базу от токенов с истекшим сроком
+     * @method clearTokens - при http DELETE запросе по адресу .../api/auth/users/tokens - очищает базу от токенов с истекшим сроком
      * @return {@code ResponseEntity.badRequest - All tokens have valid expiry date!} - если все токены имеют не истекший срок действия.
      * @return {@code ResponseEntity.badRequest - Error: Can't read token data!} - ошибка при запросе к таблице token.
      * @return {@code ResponseEntity.ok - Tokens with expiry date was deleted successfully!} - при успешном удалении токенов с истекшим сроком действия.
      */
-    @GetMapping("/token")
+    @DeleteMapping("/tokens")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?>  clearTokens() {
+
         try {
             List<Token> tokens = tokenRepository.findByExpiryDateBefore(LocalDateTime.now());
             if(tokens.isEmpty()) {
                 return ResponseEntity
                         .badRequest()
                         .body(new MessageResponse("All tokens have valid expiry date!"));
-            } else {
+            }
+            else {
                 for (Token token : tokens) {
-                    tokenRepository.delete(token);
+                    try { tokenRepository.deleteById(token.getId()); } catch (Exception e) {
+                        return ResponseEntity
+                                .badRequest()
+                                .body(new MessageResponse("Error: Can't delete token!"));
+                    }
                 }
                 return ResponseEntity.ok(new MessageResponse("Tokens with expiry date was deleted successfully!"));
             }
@@ -273,5 +266,6 @@ public class UsersController {
                     .badRequest()
                     .body(new MessageResponse("Error: Can't read token data!"));
         }
+
     }
 }

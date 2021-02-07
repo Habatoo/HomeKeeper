@@ -161,4 +161,31 @@ public class UserBalanceController {
                     .body(new MessageResponse("Database is empty!"));
         }
     }
+
+    /**
+     * Очищение таблицы userBalances
+     * @param authentication
+     * @return
+     */
+    @DeleteMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    @ResponseBody
+    public ResponseEntity<?> clearBalance(Authentication authentication) {
+        User user = userRepository.findByUserName(authentication.getName()).get();
+        if (user.equals(null)) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Username not found!"));
+        }
+
+        try {
+            userBalanceRepository.deleteAll();
+            //System.out.println("UserBalanceController.clearBalance " + userBalanceRepository.findAll());
+            return ResponseEntity.ok(new MessageResponse("Balance table was cleared!"));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Can not clear balance table!"));
+        }
+    }
 }
