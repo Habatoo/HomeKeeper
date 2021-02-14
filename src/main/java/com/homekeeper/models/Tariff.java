@@ -24,6 +24,7 @@ import java.time.LocalDateTime;
         "electricityRate",
         "internetRate",
         "rentRate",
+        "waterOutRate",
         "dateRateChange"
 })
 @EqualsAndHashCode(of = {"id"})
@@ -36,6 +37,7 @@ public class Tariff {
     private String waterHotRate;
     private String electricityRate;
     private String internetRate;
+    private String waterOutRate;
     private String rentRate;
 
     @JsonFormat(shape = JsonFormat.Shape.STRING, pattern = "yyyy-MM-dd HH:mm:ss")
@@ -52,11 +54,12 @@ public class Tariff {
      * @param internetRate тарф на интернет, рублей.копеек.
      * @param rentRate тариф на квартплату, рублей.копеек.
      */
-    public Tariff(String waterColdRate, String waterHotRate, String electricityRate, String internetRate, String rentRate) {
+    public Tariff(String waterColdRate, String waterHotRate, String electricityRate, String internetRate, String waterOutRate, String rentRate) {
         this.waterColdRate = waterColdRate;
         this.waterHotRate = waterHotRate;
         this.electricityRate = electricityRate;
         this.internetRate = internetRate;
+        this.waterOutRate = waterOutRate;
         this.rentRate = rentRate;
     }
 
@@ -114,5 +117,13 @@ public class Tariff {
 
     public void setDateRateChange(LocalDateTime dateRateChange) {
         this.dateRateChange = dateRateChange;
+    }
+
+    public String getWaterOutRate() {
+        return waterOutRate;
+    }
+
+    public void setWaterOutRate(String waterOutRate) {
+        this.waterOutRate = waterOutRate;
     }
 }

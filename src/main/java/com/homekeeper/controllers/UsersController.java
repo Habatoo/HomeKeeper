@@ -37,8 +37,8 @@ import java.util.Set;
 @RestController
 @RequestMapping("/api/auth/users")
 public class UsersController {
-    @Value("${homekeeper.app.remoteAddr}")
-    private String remoteAddr;
+//    @Value("${homekeeper.app.remoteAddr}")
+//    private String remoteAddr;
 
     private final UserRepository userRepository;
 
@@ -96,11 +96,11 @@ public class UsersController {
     @PostMapping("/addUser")
     //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest, HttpServletRequest request) {
-        if (!remoteAddr.equals(request.getRemoteAddr())) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Not support IP!"));
-        }
+//        if (!remoteAddr.equals(request.getRemoteAddr())) {
+//            return ResponseEntity
+//                    .badRequest()
+//                    .body(new MessageResponse("Not support IP!"));
+//        }
 
 
         if (userRepository.existsByUserName(
