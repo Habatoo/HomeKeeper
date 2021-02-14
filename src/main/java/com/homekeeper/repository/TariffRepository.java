@@ -9,6 +9,6 @@ public interface TariffRepository extends JpaRepository<Tariff, Long> {
 
     Optional<Tariff> findById(Long id);
 
-    Optional<Tariff> findFirstByOrderByDateRateChangeAsc();
+    Optional<Tariff> findFirstByOrderByDateRateChangeDesc();
 
 }

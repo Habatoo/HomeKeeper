@@ -61,7 +61,8 @@ public class MainController {
             throw new NotFoundException();
         }
 
-        Tariff tariffFromDb = tariffRepository.findFirstByOrderByDateRateChangeAsc().get();
+        Tariff tariffFromDb = tariffRepository.findFirstByOrderByDateRateChangeDesc().get();
+
         if (tariffFromDb.equals(null)) {
             throw new NotFoundException();
         }
