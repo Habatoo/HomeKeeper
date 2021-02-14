@@ -2,19 +2,20 @@ package com.homekeeper.controllers;
 
 import com.homekeeper.models.ERoles;
 import com.homekeeper.models.Role;
+import com.homekeeper.models.Token;
 import com.homekeeper.models.User;
-import com.homekeeper.payload.request.LoginRequest;
 import com.homekeeper.payload.request.SignupRequest;
 import com.homekeeper.payload.response.MessageResponse;
+import com.homekeeper.payload.response.UserResponse;
 import com.homekeeper.repository.RoleRepository;
+import com.homekeeper.repository.TokenRepository;
 import com.homekeeper.repository.UserBalanceRepository;
 import com.homekeeper.repository.UserRepository;
-import org.springframework.beans.BeanUtils;
+import com.homekeeper.security.jwt.UserUtils;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.*;
@@ -22,16 +23,14 @@ import org.springframework.web.bind.annotation.*;
 import javax.servlet.http.HttpServletRequest;
 import javax.validation.Valid;
 import java.time.LocalDateTime;
-import java.util.HashSet;
-import java.util.List;
-import java.util.Set;
+import java.util.*;
+
+import static com.homekeeper.models.ERoles.ROLE_USER;
 
 /**
  * Контроллер работы с пользователями. Реализваны методы userList, changeUser, deleteUser
- * TODO, getUserInfo.
  * @version 0.013
  * @author habatoo
- *
  */
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -41,10 +40,16 @@ public class UsersController {
 //    private String remoteAddr;
 
     private final UserRepository userRepository;
+    private final TokenRepository tokenRepository;
+    private final UserBalanceRepository userBalanceRepository;
 
     @Autowired
-    public UsersController(UserRepository userRepository) {
+    public UsersController(UserRepository userRepository,
+                           TokenRepository tokenRepository,
+                           UserBalanceRepository userBalanceRepository) {
         this.userRepository = userRepository;
+        this.tokenRepository = tokenRepository;
+        this.userBalanceRepository = userBalanceRepository;
     }
 
     @Autowired
@@ -53,6 +58,9 @@ public class UsersController {
     @Autowired
     PasswordEncoder encoder;
 
+    @Autowired
+    UserUtils userUtils;
+
     /**
      * @method userList - при http GET запросе по адресу .../api/auth/users
      * @return {@code List<user>} - список всех пользователей с полными данными пользователей.
@@ -60,11 +68,24 @@ public class UsersController {
      * @see Role
      * @see com.homekeeper.models.UserBalance
      */
-    // TODO - less data, cut token information.
     @GetMapping
     @PreAuthorize("hasRole('ADMIN')")
-    public List<User> userList() {
-        return userRepository.findAll();
+    @ResponseBody
+    public ResponseEntity<?> userList() {
+        List<Object> usersReturn = new ArrayList<>();
+        List<User> usersCurrent = userRepository.findAll();
+        for(User user: usersCurrent) {
+            Map<String, Object> temp = new HashMap<String, Object>();
+            temp.put("balances", user.getBalances());
+            temp.put("roles", user.getRoles());
+            temp.put("creationDate", user.getCreationDate());
+            temp.put("userEmail", user.getUserEmail());
+            temp.put("userName", user.getUserName());
+            temp.put("id", user.getId());
+            usersReturn.add(temp);
+        }
+
+        return ResponseEntity.ok(usersReturn);
     }
 
     /**
@@ -77,8 +98,15 @@ public class UsersController {
     @GetMapping("/getUserInfo")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     @ResponseBody
-    public User getUserInfo(HttpServletRequest request, Authentication authentication) {
-        return userRepository.findByUserName(authentication.getName()).get();
+    public ResponseEntity<?>  getUserInfo(Authentication authentication) {
+        User user = userRepository.findByUserName(authentication.getName()).get();
+        return ResponseEntity.ok(new UserResponse(
+                user.getUserName(),
+                user.getUserEmail(),
+                user.getCreationDate(),
+                user.getRoles(),
+                user.getBalances()
+        ));
     }
 
     /**
@@ -94,14 +122,20 @@ public class UsersController {
      * метод доступен только для пользователей с ролью ADMIN
      */
     @PostMapping("/addUser")
-    //@PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest, HttpServletRequest request) {
+//<<<<<<< HEAD
 //        if (!remoteAddr.equals(request.getRemoteAddr())) {
 //            return ResponseEntity
 //                    .badRequest()
 //                    .body(new MessageResponse("Not support IP!"));
 //        }
-
+//=======
+//        if (!(remoteAddr.equals(request.getRemoteAddr()) || "127.0.0.1".equals(request.getRemoteAddr()) | "localhost".equals(request.getRemoteAddr()))) {
+//            return ResponseEntity
+//                    .badRequest()
+//                    .body(new MessageResponse("Not support IP!"));
+//        }
+//>>>>>>> cd9719e4276310d798ea55bd45638e862b4b3a81
 
         if (userRepository.existsByUserName(
                 signUpRequest.getUserName()
@@ -117,8 +151,6 @@ public class UsersController {
                     .body(new MessageResponse("Error: Email is already in use!"));
         }
 
-
-
         // Create new user's account
         User user = new User(
                 signUpRequest.getUserName(),
@@ -130,7 +162,7 @@ public class UsersController {
         Set<Role> roles = new HashSet<>();
 
         if (strRoles == null) {
-            Role userRole = roleRepository.findByRoleName(ERoles.ROLE_USER)
+            Role userRole = roleRepository.findByRoleName(ROLE_USER)
                     .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
             roles.add(userRole);
         } else {
@@ -142,7 +174,7 @@ public class UsersController {
                         roles.add(adminRole);
                         break;
                     default:
-                        Role userRole = roleRepository.findByRoleName(ERoles.ROLE_USER)
+                        Role userRole = roleRepository.findByRoleName(ROLE_USER)
                                 .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
                         roles.add(userRole);
                 }
@@ -167,13 +199,27 @@ public class UsersController {
      */
     @PutMapping("{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
-    public User changeUser(
+    public ResponseEntity<?> changeUser(
             @PathVariable("id") User userFromDb,
-            @RequestBody User user
-    ) {
-        BeanUtils.copyProperties(user, userFromDb, "id");
+            @RequestBody User user,
+            Authentication authentication) {
 
-        return userRepository.save(userFromDb);
+        userFromDb = userRepository.findById(userFromDb.getId()).get();
+        // check ID current user = ID edit user
+        if(!(userFromDb.getId() == userRepository.findByUserName(authentication.getName()).get().getId())) {
+            // admin check
+            if(userRepository.findByUserName(authentication.getName()).get().getRoles().size() == 2) {
+                //BeanUtils.copyProperties(user, userRepository.findById(userFromDb.getId()).get(), "id");
+                return userUtils.checkUserNameAndEmail(user, userFromDb);
+                }
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("You can edit only yourself data."));
+        } else {
+            //BeanUtils.copyProperties(user, userRepository.findById(userFromDb.getId()).get(), "id");
+            return userUtils.checkUserNameAndEmail(user, userFromDb);
+        }
+
     }
 
     /**
@@ -184,9 +230,50 @@ public class UsersController {
      */
     @DeleteMapping("{id}")
     @PreAuthorize("hasRole('ADMIN')")
-    public void deleteUser(@PathVariable("id") User user) {
-
-        userRepository.delete(user);
+    public ResponseEntity<?>  deleteUser(@PathVariable("id") User user) {
+        try {
+            userRepository.delete(user);
+            return ResponseEntity.ok(new MessageResponse("User was deleted successfully!"));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Error: User was not deleted!"));
+        }
     }
 
+    /**
+     * @method clearTokens - при http DELETE запросе по адресу .../api/auth/users/tokens - очищает базу от токенов с истекшим сроком
+     * @return {@code ResponseEntity.badRequest - All tokens have valid expiry date!} - если все токены имеют не истекший срок действия.
+     * @return {@code ResponseEntity.badRequest - Error: Can't read token data!} - ошибка при запросе к таблице token.
+     * @return {@code ResponseEntity.ok - Tokens with expiry date was deleted successfully!} - при успешном удалении токенов с истекшим сроком действия.
+     */
+    @DeleteMapping("/tokens")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<?>  clearTokens() {
+
+        try {
+            List<Token> tokens = tokenRepository.findByExpiryDateBefore(LocalDateTime.now());
+            if(tokens.isEmpty()) {
+                return ResponseEntity
+                        .badRequest()
+                        .body(new MessageResponse("All tokens have valid expiry date!"));
+            }
+            else {
+                for (Token token : tokens) {
+                    try { tokenRepository.deleteById(token.getId()); } catch (Exception e) {
+                        return ResponseEntity
+                                .badRequest()
+                                .body(new MessageResponse("Error: Can't delete token!"));
+                    }
+                }
+                return ResponseEntity.ok(new MessageResponse("Tokens with expiry date was deleted successfully!"));
+            }
+
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Error: Can't read token data!"));
+        }
+
+    }
 }

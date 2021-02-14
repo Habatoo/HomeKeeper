@@ -8,13 +8,11 @@ public class UserBalanceResponse {
     private Long id;
     private LocalDateTime balanceDate;
     private String balanceSumOfBalance;
-    private User user;
 
     public UserBalanceResponse(Long id, LocalDateTime balanceDate, String balanceSumOfBalance, User user) {
         this.id = id;
         this.balanceDate = balanceDate;
         this.balanceSumOfBalance = balanceSumOfBalance;
-        this.user = user;
     }
 
     public Long getId() {
@@ -41,11 +39,4 @@ public class UserBalanceResponse {
         this.balanceSumOfBalance = balanceSumOfBalance;
     }
 
-    public User getUser() {
-        return user;
-    }
-
-    public void setUser(User user) {
-        this.user = user;
-    }
 }

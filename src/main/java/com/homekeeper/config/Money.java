@@ -16,6 +16,9 @@ public class Money {
         this.precision = currency.getDefaultFractionDigits();
         if (isNumeric(strValue)) {
             this.value = new BigDecimal(strValue);
+            if(value.compareTo(new BigDecimal(0)) < 0) {
+                throw new IllegalMoneyFormatException("Данные '" + strValue + "' содержат отрицательные значения.", strValue);
+            }
         } else {
             throw new IllegalMoneyFormatException("Данные '" + strValue + "' содержат не числовые значения, \n либо разделитель чисел не точка!", strValue);
         }

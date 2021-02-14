@@ -22,7 +22,6 @@ import java.time.LocalDateTime;
  * Реализваны методы addFundsToBalance, changeBalance, showBalance
  * @version 0.013
  * @author habatoo
- *
  */
 @CrossOrigin(origins = "*", maxAge = 3600)
 @RestController
@@ -47,7 +46,6 @@ public class UserBalanceController {
      * @return - при отсутствии username в базе - "User not found!"
      * @return - при успешной записи суммы в базу - "Balance added successfully!"
      */
-    // TODO добавить обновление данных баланса - суммирование с предыдущим значением
     @PostMapping("/addFundsToBalance")
     ResponseEntity<?> addFundsToBalance(
             @Valid @RequestBody UserBalanceRequest userBalanceRequest,
@@ -150,7 +148,7 @@ public class UserBalanceController {
         }
 
         try {
-        UserBalance userBalance = userBalanceRepository.findFirstByUserOrderByBalanceDateDesc(user).get();
+            UserBalance userBalance = userBalanceRepository.findFirstByUserOrderByBalanceDateDesc(user).get();
         return ResponseEntity.ok(new UserBalanceResponse(
                 userBalance.getId(),
                 userBalance.getBalanceDate(),
@@ -161,6 +159,33 @@ public class UserBalanceController {
             return ResponseEntity
                     .badRequest()
                     .body(new MessageResponse("Database is empty!"));
+        }
+    }
+
+    /**
+     * Очищение таблицы userBalances
+     * @param authentication
+     * @return
+     */
+    @DeleteMapping
+    @PreAuthorize("hasRole('ADMIN')")
+    @ResponseBody
+    public ResponseEntity<?> clearBalance(Authentication authentication) {
+        User user = userRepository.findByUserName(authentication.getName()).get();
+        if (user.equals(null)) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Username not found!"));
+        }
+
+        try {
+            userBalanceRepository.deleteAll();
+            //System.out.println("UserBalanceController.clearBalance " + userBalanceRepository.findAll());
+            return ResponseEntity.ok(new MessageResponse("Balance table was cleared!"));
+        } catch (Exception e) {
+            return ResponseEntity
+                    .badRequest()
+                    .body(new MessageResponse("Can not clear balance table!"));
         }
     }
 }
