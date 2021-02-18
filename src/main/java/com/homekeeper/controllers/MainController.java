@@ -35,7 +35,6 @@ public class MainController {
     @Autowired
     PaymentRepository paymentRepository;
 
-    //Самусь
     @Autowired
     TariffRepository tariffRepository;
 
@@ -50,8 +49,7 @@ public class MainController {
 
 
 
-    public Payment getCalculation(//@PathVariable("id")
-                                       Payment paymentFromDb) {
+    public Payment getCalculation(Payment paymentFromDb) {
         // Принимает payment из метода addMonthData
         // Расчёт и возврат сумм по необходимому месяцу.
 
@@ -87,7 +85,7 @@ public class MainController {
         return payment;
     }
 
-    //Cамусь (не тестил)
+
     @PostMapping("/addMonthData")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> addMonthData(@RequestBody AddMonthDataRequest addMonthDataRequest) {
@@ -108,7 +106,6 @@ public class MainController {
         return ResponseEntity.ok(new MessageResponse("Payment added successfully"));
     }
 
-    //Cамусь
     @PostMapping("/addTariff")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public ResponseEntity<?> addTariff(@RequestBody AddTariffRequest addTariffRequest){
@@ -127,7 +124,6 @@ public class MainController {
         return ResponseEntity.ok(new MessageResponse("Tariff added successfully!"));
     };
 
-    //Самусь
     @PutMapping("/changeTariffs/{id}")
     @PreAuthorize("hasRole('USER') or hasRole('ADMIN')")
     public Tariff changeTariffs(@PathVariable("id") Tariff tariffFromDb,
