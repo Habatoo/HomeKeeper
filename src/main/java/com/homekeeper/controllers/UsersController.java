@@ -36,8 +36,8 @@ import static com.homekeeper.models.ERoles.ROLE_USER;
 @RestController
 @RequestMapping("/api/auth/users")
 public class UsersController {
-    @Value("${homekeeper.app.remoteAddr}")
-    private String remoteAddr;
+//    @Value("${homekeeper.app.remoteAddr}")
+//    private String remoteAddr;
 
     private final UserRepository userRepository;
     private final TokenRepository tokenRepository;
@@ -123,11 +123,19 @@ public class UsersController {
      */
     @PostMapping("/addUser")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest, HttpServletRequest request) {
-        if (!(remoteAddr.equals(request.getRemoteAddr()) || "127.0.0.1".equals(request.getRemoteAddr()) | "localhost".equals(request.getRemoteAddr()))) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse("Not support IP!"));
-        }
+//<<<<<<< HEAD
+//        if (!remoteAddr.equals(request.getRemoteAddr())) {
+//            return ResponseEntity
+//                    .badRequest()
+//                    .body(new MessageResponse("Not support IP!"));
+//        }
+//=======
+//        if (!(remoteAddr.equals(request.getRemoteAddr()) || "127.0.0.1".equals(request.getRemoteAddr()) | "localhost".equals(request.getRemoteAddr()))) {
+//            return ResponseEntity
+//                    .badRequest()
+//                    .body(new MessageResponse("Not support IP!"));
+//        }
+//>>>>>>> cd9719e4276310d798ea55bd45638e862b4b3a81
 
         if (userRepository.existsByUserName(
                 signUpRequest.getUserName()
