@@ -77,32 +77,32 @@ public class Payment {
     /**
      *
      * @param waterColdValueCurrentMonth показания счетчика холодной воды
-     * @param waterColdSum итоговая сумма оплаты за холодную воду, рублей.копеек.
+     //* @param waterColdSum итоговая сумма оплаты за холодную воду, рублей.копеек.
      * @param waterWarmValueCurrentMonth показания счетчика холодной воды
-     * @param waterWarmSum итоговая сумма оплаты за холодную воду, рублей.копеек.
+    // * @param waterWarmSum итоговая сумма оплаты за холодную воду, рублей.копеек.
      * @param electricityValueCurrentMonth показания счетчика холодной воды
-     * @param electricitySum итоговая сумма оплаты за холодную воду, рублей.копеек.
+     //* @param electricitySum итоговая сумма оплаты за холодную воду, рублей.копеек.
      * @param internetValueCurrentMonth показания счетчика холодной воды
-     * @param internetSum итоговая сумма оплаты за холодную воду, рублей.копеек.
+    // * @param internetSum итоговая сумма оплаты за холодную воду, рублей.копеек.
      * @param waterOutValueCurrentMonth показания счетчика холодной воды
-     * @param waterOutSum итоговая сумма оплаты за холодную воду, рублей.копеек.
+    // * @param waterOutSum итоговая сумма оплаты за холодную воду, рублей.копеек.
      * @param rentRateSum итоговая сумма квартплаты, рублей.копеек.
-     * @param rentSum итоговая сумма аренды, рублей.копеек.
+     //* @param rentSum итоговая сумма аренды, рублей.копеек.
      * @param homeMates количество проживающих.
      */
     public Payment(
             double waterColdValueCurrentMonth,
-            String waterColdSum,
+//            String waterColdSum,
             double waterWarmValueCurrentMonth,
-            String waterWarmSum,
+//            String waterWarmSum,
             double electricityValueCurrentMonth,
-            String electricitySum,
+//            String electricitySum,
             double internetValueCurrentMonth,
-            String internetSum,
+//            String internetSum,
             double waterOutValueCurrentMonth,
-            String waterOutSum,
+//            String waterOutSum,
             String rentRateSum,
-            String rentSum,
+//            String rentSum,
             int homeMates) {
         this.waterColdValueCurrentMonth = waterColdValueCurrentMonth;
         this.waterColdSum = waterColdSum;

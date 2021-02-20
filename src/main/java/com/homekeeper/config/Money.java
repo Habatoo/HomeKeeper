@@ -47,6 +47,14 @@ public class Money {
         return newValue;
     }
 
+    //Самусь
+    public Money multiplyByDouble(double doubleValue) throws IllegalMoneyFormatException {
+        Money newValue = new Money (String.valueOf(doubleValue));
+        newValue.value = this.value.setScale(this.precision, BigDecimal.ROUND_DOWN).multiply(newValue.value.setScale(this.precision, BigDecimal.ROUND_DOWN));
+        newValue.value = newValue.value.setScale(this.precision, BigDecimal.ROUND_DOWN);
+        return newValue;
+    }
+
     public Money divideByInt(int intValue) throws IllegalMoneyFormatException {
         Money newValue = new Money (String.valueOf(intValue));
         newValue.value = this.value.setScale(this.precision, BigDecimal.ROUND_DOWN).divide(newValue.value.setScale(this.precision, BigDecimal.ROUND_DOWN));

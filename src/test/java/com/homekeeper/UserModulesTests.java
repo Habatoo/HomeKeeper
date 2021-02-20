@@ -2,6 +2,7 @@ package com.homekeeper;
 
 import com.homekeeper.controllers.AuthController;
 import com.homekeeper.controllers.UsersController;
+import com.homekeeper.models.User;
 import com.homekeeper.payload.response.JwtResponse;
 import com.homekeeper.repository.TokenRepository;
 import com.homekeeper.repository.UserRepository;
@@ -27,6 +28,7 @@ import javax.servlet.http.HttpServletRequest;
 import java.util.Date;
 
 import static org.assertj.core.api.Assertions.assertThat;
+import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
 
@@ -91,6 +93,9 @@ public class UserModulesTests {
                 .content("{ \"userName\": \"mod\", \"email\": \"mod@mod.com\", \"password\": \"12345\", \"role\": [\"admin\", \"user\"] }"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("message").value("User registered successfully!"));
+
+        User user = userRepository.findByUserName("mod").get();
+        Assert.assertTrue(user.getBalances().toString().contains("0.00"));
     }
 
     @Test
@@ -105,6 +110,10 @@ public class UserModulesTests {
                 .content("{ \"userName\": \"guest\", \"email\": \"guest@guest.com\", \"password\": \"12345\", \"role\": [\"user\"] }"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("message").value("User registered successfully!"));
+
+        User user = userRepository.findByUserName("guest").get();
+        Assert.assertTrue(user.getBalances().toString().contains("0.00"));
+
     }
 
     @Test
@@ -119,6 +128,9 @@ public class UserModulesTests {
                 .content("{ \"userName\": \"admin2\", \"email\": \"admin2@admin2.com\", \"password\": \"12345\", \"role\": [\"admin\"] }"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("message").value("User registered successfully!"));
+
+        User user = userRepository.findByUserName("admin2").get();
+        Assert.assertTrue(user.getBalances().toString().contains("0.00"));
     }
 
     @Test
@@ -161,6 +173,9 @@ public class UserModulesTests {
                 .content("{ \"userName\": \"cat\", \"email\": \"cat@cat.com\", \"password\": \"12345\", \"role\": [\"cat\"] }"))
                 .andExpect(status().isOk())
                 .andExpect(jsonPath("message").value("User registered successfully!"));
+
+        User user = userRepository.findByUserName("cat").get();
+        Assert.assertTrue(user.getBalances().toString().contains("0.00"));
     }
 
     @Test
@@ -173,58 +188,65 @@ public class UserModulesTests {
                 .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
                 .content("{ \"userName\": \"admin2\", \"email\": \"admin2@admin2.com\", \"password\": \"12345\", \"role\": [\"admin\"] }"))
-                .andExpect(status().isOk())
-                .andExpect(jsonPath("message").value("User registered successfully!"));
+                .andExpect(status().is(403));
+
+        assertEquals("Optional.empty", userRepository.findByUserName("admin2").toString());
     }
 
-//    @Test
-//    @DisplayName("Проверяет изменение своих данных пользователем с правами ADMIN.")
-//    public void testChangeMyAdminData() throws Exception{
-//        String id = "1";
-//        JwtResponse jwtResponse = tokenUtils.makeAuth(username, password);
-//        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
-//
-//        //System.out.println("MyAdminData " + userRepository.findByUserName(username));
-//
-//        this.mockMvc.perform(put("/api/auth/users/" + id)
-//                .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content("{ \"userName\": \"admin2\", \"userEmail\": \"admin2@admin2.com\", \"password\": \"12345\"] }"))
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("message").value("ser data was update successfully!"));
-//
-//    }
+    @Test
+    @DisplayName("Проверяет изменение своих данных пользователем с правами ADMIN.")
+    public void testChangeMyAdminData() throws Exception{
+        String id = "1";
+        JwtResponse jwtResponse = tokenUtils.makeAuth(username, password);
+        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
 
-//    @Test
-//    @DisplayName("Проверяет изменение не своих данных пользователем с правами ADMIN.")
-//    public void testChangeUserData() throws Exception{
-//        String id = "2";
-//        JwtResponse jwtResponse = tokenUtils.makeAuth(username, password);
-//        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
-//
-//        this.mockMvc.perform(put("/api/auth/users/" + id)
-//                .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content("{ \"userName\": \"user2\", \"userEmail\": \"user2@user2.com\", \"password\": \"12345\"] }"))
-//                .andDo(print())
-//                .andExpect(status().isOk())
-//                .andExpect(jsonPath("message").value("User data was update successfully!"));
-//    }
+        this.mockMvc.perform(put("/api/auth/users/" + id)
+                .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"userName\": \"admin2\", \"userEmail\": \"admin2@admin2.com\", \"password\": \"12345\" }"))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("message").value("User data was update successfully!"));
 
-//    @Test
-//    @DisplayName("Проверяет изменение своих данных пользователем с правами USER.")
-//    public void testChangeMyUserData() throws Exception{
-//        JwtResponse jwtResponse = tokenUtils.makeAuth("user", password);
-//        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
-//
-//        this.mockMvc.perform(put("/api/auth/users/2")
-//                .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
-//                .contentType(MediaType.APPLICATION_JSON)
-//                .content("{ \"userName\": \"user2\", \"userEmail\": \"user2@user2.com\", \"password\": \"12345\"] }"))
-//                .andExpect(status().is(200))
-//                .andExpect(jsonPath("message").value("User data was update successfully!"));
-//
-//    }
+        assertEquals("admin2", userRepository.findByUserName("admin2").get().getUserName());
+        assertEquals("admin2@admin2.com", userRepository.findByUserName("admin2").get().getUserEmail());
+
+    }
+
+    @Test
+    @DisplayName("Проверяет изменение не своих данных пользователем с правами ADMIN.")
+    public void testChangeUserData() throws Exception{
+        String id = "2";
+        JwtResponse jwtResponse = tokenUtils.makeAuth(username, password);
+        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
+
+        this.mockMvc.perform(put("/api/auth/users/" + id)
+                .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"userName\": \"user2\", \"userEmail\": \"user2@user2.com\", \"password\": \"12345\" }"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("message").value("User data was update successfully!"));
+
+        assertEquals("user2", userRepository.findByUserName("user2").get().getUserName());
+        assertEquals("user2@user2.com", userRepository.findByUserName("user2").get().getUserEmail());
+    }
+
+    @Test
+    @DisplayName("Проверяет изменение своих данных пользователем с правами USER.")
+    public void testChangeMyUserData() throws Exception{
+        JwtResponse jwtResponse = tokenUtils.makeAuth("user", password);
+        tokenUtils.makeToken(username, jwtResponse.getAccessToken());
+
+        this.mockMvc.perform(put("/api/auth/users/2")
+                .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
+                .contentType(MediaType.APPLICATION_JSON)
+                .content("{ \"userName\": \"user2\", \"userEmail\": \"user2@user2.com\", \"password\": \"12345\" }"))
+                .andExpect(status().is(200))
+                .andExpect(jsonPath("message").value("User data was update successfully!"));
+
+        assertEquals("user2", userRepository.findByUserName("user2").get().getUserName());
+        assertEquals("user2@user2.com", userRepository.findByUserName("user2").get().getUserEmail());
+
+    }
 
     @Test
     @DisplayName("Проверяет изменение не своих данных пользователем с правами USER.")
@@ -236,7 +258,7 @@ public class UserModulesTests {
         this.mockMvc.perform(put("/api/auth/users/" + id)
                 .header("Authorization", "Bearer " + jwtResponse.getAccessToken())
                 .contentType(MediaType.APPLICATION_JSON)
-                .content("{ \"userName\": \"admin2\", \"userEmail\": \"admin2@admin2.com\", \"password\": \"12345\"] }"))
+                .content("{ \"userName\": \"admin2\", \"userEmail\": \"admin2@admin2.com\", \"password\": \"12345\" }"))
                 .andExpect(status().is(400));
                 //.andExpect(jsonPath("message").value("You can edit only yourself data."));
     }

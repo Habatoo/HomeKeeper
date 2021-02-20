@@ -1,9 +1,7 @@
 package com.homekeeper.controllers;
 
-import com.homekeeper.models.ERoles;
-import com.homekeeper.models.Role;
-import com.homekeeper.models.Token;
-import com.homekeeper.models.User;
+import com.homekeeper.config.Money;
+import com.homekeeper.models.*;
 import com.homekeeper.payload.request.SignupRequest;
 import com.homekeeper.payload.response.MessageResponse;
 import com.homekeeper.payload.response.UserResponse;
@@ -119,9 +117,10 @@ public class UsersController {
      * @return {@code ResponseEntity.badRequest - Error: Email is already in use!} - ошибка при дублировании email при регистрации.
      * @see ResponseEntity
      * @see SignupRequest
-     * метод доступен только для пользователей с ролью ADMIN
+     * метод доступен только для пользователей с ролью ADMIN из локальной подсети
      */
     @PostMapping("/addUser")
+    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<?> registerUser(@Valid @RequestBody SignupRequest signUpRequest, HttpServletRequest request) {
         if (!(remoteAddr.equals(request.getRemoteAddr()) || "127.0.0.1".equals(request.getRemoteAddr()) | "localhost".equals(request.getRemoteAddr()))) {
             return ResponseEntity
@@ -176,6 +175,12 @@ public class UsersController {
         user.setRoles(roles);
         user.setCreationDate(LocalDateTime.now());
         userRepository.save(user);
+
+        // Create new balance data
+        UserBalance userBalance = new UserBalance("0.00");
+        userBalance.setUser(user);
+        userBalance.setBalanceDate(LocalDateTime.now());
+        userBalanceRepository.save(userBalance);
 
         return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
     }
